@@ -1,6 +1,9 @@
 import os
 import re
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Request, Form
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, validator
 from dotenv import load_dotenv
 from typing import Optional
@@ -16,6 +19,12 @@ app = FastAPI(title="Kindergarten Daily Report Generator")
 # Initialize clients
 notion_client = NotionClient(api_key=os.getenv("NOTION_API_KEY"))
 gemini_client = GeminiClient(api_key=os.getenv("GEMINI_API_KEY"))
+
+# Set up templates
+templates = Jinja2Templates(directory="templates")
+
+# Create templates directory if it doesn't exist
+os.makedirs("templates", exist_ok=True)
 
 class NotionPageRequest(BaseModel):
     page_identifier: str
@@ -35,9 +44,12 @@ class NotionPageRequest(BaseModel):
         else:
             raise ValueError("Invalid page identifier. Must be a Notion URL or a 32-character page ID.")
 
-@app.get("/")
-async def root():
-    return {"message": "Kindergarten Daily Report Generator API"}
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    return templates.TemplateResponse(
+        "index.html", 
+        {"request": request, "title": "Kindergarten Daily Report Generator"}
+    )
 
 @app.post("/generate-report")
 async def generate_report(request: NotionPageRequest):
@@ -61,6 +73,54 @@ async def generate_report(request: NotionPageRequest):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/submit-form", response_class=HTMLResponse)
+async def submit_form(request: Request, page_identifier: str = Form(...)):
+    try:
+        # Validate the page identifier
+        validator = NotionPageRequest.validate_page_identifier
+        validated_id = validator(NotionPageRequest, page_identifier)
+        
+        # 1. Extract content from the source Notion page
+        page_content = notion_client.get_page_content(validated_id)
+        
+        # 2. Generate daily report using Gemini API
+        report_content = gemini_client.generate_report(page_content)
+        
+        # 3. Create a new Notion page with the report
+        new_page_id = notion_client.create_report_page(report_content)
+        
+        # 4. Generate the URL to the new page
+        new_page_url = f"https://notion.so/{new_page_id.replace('-', '')}"
+        
+        # Return success page with the link
+        return templates.TemplateResponse(
+            "success.html", 
+            {
+                "request": request, 
+                "title": "Report Generated Successfully", 
+                "report_url": new_page_url
+            }
+        )
+    
+    except ValueError as ve:
+        return templates.TemplateResponse(
+            "error.html", 
+            {
+                "request": request, 
+                "title": "Error", 
+                "error_message": str(ve)
+            }
+        )
+    except Exception as e:
+        return templates.TemplateResponse(
+            "error.html", 
+            {
+                "request": request, 
+                "title": "Error", 
+                "error_message": str(e)
+            }
+        )
 
 if __name__ == "__main__":
     import uvicorn

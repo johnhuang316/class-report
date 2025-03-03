@@ -1,9 +1,10 @@
 # Kindergarten Daily Report Generator
 
-This project provides a simple API that allows users to generate kindergarten daily reports from a Notion page ID or link, publish them to Notion, and return a link to the new page.
+This project provides a simple API and web interface that allows users to generate kindergarten daily reports from a Notion page ID or link, publish them to Notion, and return a link to the new page.
 
 ## Features
 
+- Web interface for easy report generation
 - Accept Notion page ID or URL
 - Extract text and photo URLs from Notion pages
 - Generate daily reports using Gemini API
@@ -13,6 +14,7 @@ This project provides a simple API that allows users to generate kindergarten da
 ## Technical Architecture
 
 - **Backend**: FastAPI (Python)
+- **Frontend**: HTML/CSS with Jinja2 Templates
 - **AI Generation**: Google Gemini API
 - **Data Source/Target**: Notion API
 - **Deployment**: Google Cloud Run
@@ -57,9 +59,18 @@ uvicorn main:app --reload
 
 The application will run at `http://localhost:8000`.
 
-## API Usage
+## Usage
 
-### Generate Report
+### Web Interface
+
+1. Open your browser and navigate to `http://localhost:8000`
+2. Enter your Notion page ID or URL in the form
+3. Click "Generate Report"
+4. You'll be redirected to a success page with a link to your new Notion report
+
+### API Usage
+
+If you prefer to use the API directly:
 
 **Endpoint**: `POST /generate-report`
 
