@@ -20,10 +20,10 @@ function Load-EnvFile {
 # Load environment variables
 Load-EnvFile
 
-# Configuration - change these values as needed
-$PROJECT_ID = "jumido"
-$SERVICE_NAME = "class-report"
-$REGION = "us-central1"
+# Configuration - load from environment variables with fallbacks
+$PROJECT_ID = if ($env:GCP_PROJECT_ID) { $env:GCP_PROJECT_ID } else { "jumido" }
+$SERVICE_NAME = if ($env:SERVICE_NAME) { $env:SERVICE_NAME } else { "class-report" }
+$REGION = if ($env:GCP_REGION) { $env:GCP_REGION } else { "us-central1" }
 $IMAGE_NAME = "gcr.io/$PROJECT_ID/$SERVICE_NAME"
 
 # Verify required environment variables
@@ -33,6 +33,20 @@ $requiredEnvVars = @(
     "GEMINI_API_KEY",
     "GCS_BUCKET_NAME"
 )
+
+# Verify optional environment variables with defaults
+$optionalEnvVars = @(
+    @{Name = "GCP_PROJECT_ID"; Default = "jumido"; Description = "Google Cloud Project ID"},
+    @{Name = "SERVICE_NAME"; Default = "class-report"; Description = "Cloud Run service name"},
+    @{Name = "GCP_REGION"; Default = "us-central1"; Description = "Google Cloud region"}
+)
+
+# Log environment configuration
+Write-Host "Deployment Configuration:"
+Write-Host "  Project ID: $PROJECT_ID"
+Write-Host "  Service Name: $SERVICE_NAME"
+Write-Host "  Region: $REGION"
+Write-Host "  Image: $IMAGE_NAME"
 
 foreach ($var in $requiredEnvVars) {
     if (-not (Get-Item "env:$var" -ErrorAction SilentlyContinue)) {
