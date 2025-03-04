@@ -26,12 +26,8 @@ class NotionService:
         
         # Handle ntn_ format API keys
         auth_value = api_key
-        if api_key.startswith("ntn_"):
-            # New format API key, use directly
-            auth_value = api_key
-        else:
-            # Old format API key, add Bearer prefix
-            auth_value = f"Bearer {api_key}"
+        # New format API key, still needs Bearer prefix
+        auth_value = f"Bearer {api_key}"
             
         self.headers = {
             "Authorization": auth_value,
