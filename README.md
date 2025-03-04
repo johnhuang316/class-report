@@ -5,7 +5,7 @@ This project provides a simple web interface that allows kindergarten teachers t
 ## Features
 
 - Web interface for easy report generation
-- Upload photos directly from your device (photos are stored in Google Cloud Storage and local files are immediately deleted)
+- Upload photos directly from your device
 - Enter classroom notes and activities
 - Generate AI-powered daily reports using Google Gemini
 - Automatically publish reports to Notion
@@ -18,7 +18,7 @@ This project provides a simple web interface that allows kindergarten teachers t
 - **Frontend**: HTML/CSS/JavaScript with Jinja2 Templates
 - **AI Generation**: Google Gemini API
 - **Data Target**: Notion API
-- **File Storage**: Google Cloud Storage (GCS) - all photos are stored here and local copies are deleted after upload
+- **File Storage**: Google Cloud Storage (GCS)
 - **Deployment**: Google Cloud Run
 
 ## Project Structure
@@ -102,7 +102,7 @@ The application will run at `http://localhost:8000`.
 5. You'll be redirected to a success page with:
    - A link to your new Notion report
    - A preview of the generated report content
-   - The uploaded images (stored in Google Cloud Storage, local copies deleted)
+   - The uploaded images
 
 ### API Usage
 
@@ -132,6 +132,25 @@ If you prefer to use the API directly:
 
 ## Deployment to Google Cloud Run
 
+### Important Security Note
+
+For security reasons, all sensitive information (API keys, credentials, etc.) should be stored in environment variables using a `.env` file. Never commit sensitive information directly to the repository.
+
+1. Create a `.env` file based on `.env.example`:
+```bash
+cp .env.example .env
+```
+
+2. Update the `.env` file with your actual credentials:
+```
+NOTION_API_KEY=your_notion_api_key
+NOTION_DATABASE_ID=your_database_id
+GEMINI_API_KEY=your_gemini_api_key
+GCS_BUCKET_NAME=your_bucket_name
+```
+
+3. Ensure `.env` is listed in your `.gitignore` file to prevent accidental commits.
+
 ### Using Deployment Scripts
 
 This project includes deployment scripts for both Linux/Mac (bash) and Windows (PowerShell) environments.
@@ -139,13 +158,7 @@ This project includes deployment scripts for both Linux/Mac (bash) and Windows (
 #### For Linux/Mac Users:
 
 1. Ensure you have installed and configured the Google Cloud SDK.
-
-2. Update the configuration variables in `deploy.sh`:
-   - `PROJECT_ID`: Your Google Cloud project ID
-   - `SERVICE_NAME`: Name for your Cloud Run service (default: class-report)
-   - `REGION`: GCP region to deploy to (default: us-central1)
-   - `GCS_BUCKET_NAME`: Name of your Google Cloud Storage bucket
-
+2. Make sure your `.env` file is properly configured.
 3. Make the script executable and run it:
 
 ```bash
@@ -156,13 +169,7 @@ chmod +x deploy.sh
 #### For Windows Users:
 
 1. Ensure you have installed and configured the Google Cloud SDK.
-
-2. Update the configuration variables in `deploy.ps1`:
-   - `$PROJECT_ID`: Your Google Cloud project ID
-   - `$SERVICE_NAME`: Name for your Cloud Run service (default: class-report)
-   - `$REGION`: GCP region to deploy to (default: us-central1)
-   - `$GCS_BUCKET_NAME`: Name of your Google Cloud Storage bucket
-
+2. Make sure your `.env` file is properly configured.
 3. Run the PowerShell script:
 
 ```powershell
@@ -244,6 +251,18 @@ The application includes comprehensive logging to help diagnose issues:
 1. **API Key Issues**: Ensure your API keys are correctly set in environment variables
 2. **Notion Permission Issues**: Verify your integration has access to both source pages and target database
 3. **Gemini API Errors**: Check quota limits and API key validity
+
+## Performance Optimization
+
+The application is configured with the following Cloud Run settings:
+
+- Memory: 512Mi
+- CPU: 1
+- Concurrency: 80 (maximum concurrent requests per instance)
+- Max instances: 10 (to control costs)
+- Min instances: 0 (scales to zero when not in use)
+
+Adjust these settings in the deployment scripts or Cloud Run console based on your usage patterns.
 
 ## Security Considerations
 
