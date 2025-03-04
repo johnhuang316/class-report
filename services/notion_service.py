@@ -5,6 +5,17 @@ from typing import Dict, List, Any, Optional
 import requests
 from services.storage_service import StorageService
 
+# Import md2notion for Markdown to Notion conversion
+try:
+    from md2notion.upload import convert as md2notion_convert
+    from md2notion.upload import uploadBlock
+    import markdown
+    import re
+    HAS_MD2NOTION = True
+except ImportError:
+    HAS_MD2NOTION = False
+    logging.warning("md2notion library not found. Using fallback markdown parser.")
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -227,6 +238,103 @@ class NotionService:
         Returns:
             List of Notion blocks
         """
+        # Join content lines into a single markdown string
+        markdown_text = "\n".join(content)
+        
+        # Use md2notion if available, otherwise use fallback parser
+        if HAS_MD2NOTION:
+            logger.info("Using md2notion for Markdown conversion")
+            try:
+                # Convert markdown to Notion blocks using md2notion
+                from notion.block import TextBlock
+                from notion.client import NotionClient
+                
+                # Create a temporary client for conversion (not actually used for API calls)
+                # This is just to satisfy md2notion's requirements
+                temp_client = type('obj', (object,), {
+                    'get_block': lambda x: None,
+                })
+                
+                # Parse markdown to AST
+                parsed_markdown = markdown.markdown(markdown_text, output_format="html")
+                
+                # Convert to Notion blocks
+                notion_blocks = md2notion_convert(parsed_markdown)
+                
+                # Convert md2notion blocks to API format
+                blocks = []
+                for block in notion_blocks:
+                    if hasattr(block, 'title') and block.title:
+                        # Handle text blocks
+                        blocks.append({
+                            "object": "block",
+                            "type": "paragraph",
+                            "paragraph": {
+                                "rich_text": self._parse_markdown_line(block.title)
+                            }
+                        })
+                    elif hasattr(block, 'type') and block.type:
+                        # Handle other block types
+                        block_type = block.type
+                        if block_type == "header":
+                            blocks.append({
+                                "object": "block",
+                                "type": "heading_1",
+                                "heading_1": {
+                                    "rich_text": self._parse_markdown_line(block.title),
+                                    "color": "blue_background"
+                                }
+                            })
+                        elif block_type == "sub_header":
+                            blocks.append({
+                                "object": "block",
+                                "type": "heading_2",
+                                "heading_2": {
+                                    "rich_text": self._parse_markdown_line(block.title),
+                                    "color": "purple_background"
+                                }
+                            })
+                        elif block_type == "divider":
+                            blocks.append({
+                                "object": "block",
+                                "type": "divider",
+                                "divider": {}
+                            })
+                        elif block_type == "bulleted_list":
+                            blocks.append({
+                                "object": "block",
+                                "type": "bulleted_list_item",
+                                "bulleted_list_item": {
+                                    "rich_text": self._parse_markdown_line(block.title)
+                                }
+                            })
+                        elif block_type == "quote":
+                            blocks.append({
+                                "object": "block",
+                                "type": "quote",
+                                "quote": {
+                                    "rich_text": self._parse_markdown_line(block.title),
+                                    "color": "gray_background"
+                                }
+                            })
+                        else:
+                            # Default to paragraph for unknown types
+                            blocks.append({
+                                "object": "block",
+                                "type": "paragraph",
+                                "paragraph": {
+                                    "rich_text": self._parse_markdown_line(str(block.title) if hasattr(block, 'title') else "")
+                                }
+                            })
+                
+                return blocks
+            except Exception as e:
+                logger.error(f"Error using md2notion: {str(e)}")
+                logger.info("Falling back to custom markdown parser")
+                # Fall back to the custom parser
+        
+        # Fallback: Use the custom markdown parser
+        logger.info("Using custom markdown parser")
         blocks = []
         current_text = ""
         in_quote = False
