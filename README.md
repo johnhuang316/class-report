@@ -245,18 +245,6 @@ The application includes comprehensive logging to help diagnose issues:
 2. **Notion Permission Issues**: Verify your integration has access to both source pages and target database
 3. **Gemini API Errors**: Check quota limits and API key validity
 
-## Performance Optimization
-
-The application is configured with the following Cloud Run settings:
-
-- Memory: 512Mi
-- CPU: 1
-- Concurrency: 80 (maximum concurrent requests per instance)
-- Max instances: 10 (to control costs)
-- Min instances: 0 (scales to zero when not in use)
-
-Adjust these settings in the deployment scripts or Cloud Run console based on your usage patterns.
-
 ## Security Considerations
 
 - API keys are stored as environment variables and never exposed in logs
