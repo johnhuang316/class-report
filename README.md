@@ -1,23 +1,53 @@
 # Kindergarten Daily Report Generator
 
-This project provides a simple API and web interface that allows users to generate kindergarten daily reports from a Notion page ID or link, publish them to Notion, and return a link to the new page.
+This project provides a simple web interface that allows kindergarten teachers to generate daily reports by uploading photos and entering classroom notes. The system uses AI to generate a comprehensive report and publishes it to Notion, returning a link to the new page.
 
 ## Features
 
 - Web interface for easy report generation
-- Accept Notion page ID or URL
-- Extract text and photo URLs from Notion pages
-- Generate daily reports using Gemini API
-- Publish reports to new Notion pages
-- Return links to the new pages
+- Upload photos directly from your device (photos are stored in Google Cloud Storage and local files are immediately deleted)
+- Enter classroom notes and activities
+- Generate AI-powered daily reports using Google Gemini
+- Automatically publish reports to Notion
+- Store images in Google Cloud Storage
+- Return links to the new Notion pages
 
 ## Technical Architecture
 
 - **Backend**: FastAPI (Python)
-- **Frontend**: HTML/CSS with Jinja2 Templates
+- **Frontend**: HTML/CSS/JavaScript with Jinja2 Templates
 - **AI Generation**: Google Gemini API
-- **Data Source/Target**: Notion API
+- **Data Target**: Notion API
+- **File Storage**: Google Cloud Storage (GCS) - all photos are stored here and local copies are deleted after upload
 - **Deployment**: Google Cloud Run
+
+## Project Structure
+
+```
+class-report/
+├── main.py                 # Main application file
+├── requirements.txt        # Project dependencies
+├── .env                    # Environment variables (not in repo)
+├── .env.example            # Example environment variables
+├── services/               # Service modules
+│   ├── __init__.py         # Package initialization
+│   ├── gemini_service.py   # Gemini AI integration
+│   ├── notion_service.py   # Notion API integration
+│   └── storage_service.py  # Google Cloud Storage integration
+├── static/                 # Static files
+│   ├── css/                # CSS stylesheets
+│   │   └── styles.css      # Main stylesheet
+│   ├── js/                 # JavaScript files
+│   │   └── main.js         # Main JavaScript file
+│   ├── img/                # Image assets
+│   │   └── notion-logo.png # Notion logo
+│   ├── uploads/            # Uploaded images (not in repo)
+│   └── favicon.ico         # Favicon
+└── templates/              # Jinja2 templates
+    ├── index.html          # Home page template
+    ├── success.html        # Success page template
+    └── error.html          # Error page template
+```
 
 ## Installation and Setup
 
@@ -27,6 +57,8 @@ This project provides a simple API and web interface that allows users to genera
 - Notion API key
 - Gemini API key
 - Notion database ID (for creating new pages)
+- Google Cloud Storage bucket
+- Google Cloud Service Account credentials
 
 ### Local Development
 
@@ -49,7 +81,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Edit the `.env` file and fill in your API keys and database ID.
+Edit the `.env` file and fill in your API keys, database ID, and Google Cloud Storage bucket name.
 
 4. Run the application:
 
@@ -64,9 +96,13 @@ The application will run at `http://localhost:8000`.
 ### Web Interface
 
 1. Open your browser and navigate to `http://localhost:8000`
-2. Enter your Notion page ID or URL in the form
-3. Click "Generate Report"
-4. You'll be redirected to a success page with a link to your new Notion report
+2. Upload photos from your device (multiple photos supported)
+3. Enter classroom notes and activities in the text area
+4. Click "Generate Report"
+5. You'll be redirected to a success page with:
+   - A link to your new Notion report
+   - A preview of the generated report content
+   - The uploaded images (stored in Google Cloud Storage, local copies deleted)
 
 ### API Usage
 
@@ -78,23 +114,8 @@ If you prefer to use the API directly:
 
 ```json
 {
-  "page_identifier": "notion-page-ID-or-URL"
-}
-```
-
-**Examples**:
-
-```json
-{
-  "page_identifier": "https://www.notion.so/myworkspace/1234567890abcdef1234567890abcdef"
-}
-```
-
-Or
-
-```json
-{
-  "page_identifier": "1234567890abcdef1234567890abcdef"
+  "content": ["Classroom notes and activities"],
+  "image_paths": ["/path/to/image1.jpg", "/path/to/image2.jpg"]
 }
 ```
 
@@ -103,27 +124,145 @@ Or
 ```json
 {
   "success": true,
-  "report_url": "https://notion.so/new-page-ID"
+  "report_id": "unique-report-id",
+  "notion_page_id": "notion-page-id",
+  "notion_page_url": "https://notion.so/page-id"
 }
 ```
 
 ## Deployment to Google Cloud Run
 
+### Using Deployment Scripts
+
+This project includes deployment scripts for both Linux/Mac (bash) and Windows (PowerShell) environments.
+
+#### For Linux/Mac Users:
+
 1. Ensure you have installed and configured the Google Cloud SDK.
 
-2. Build and deploy to Cloud Run:
+2. Update the configuration variables in `deploy.sh`:
+   - `PROJECT_ID`: Your Google Cloud project ID
+   - `SERVICE_NAME`: Name for your Cloud Run service (default: class-report)
+   - `REGION`: GCP region to deploy to (default: us-central1)
+   - `GCS_BUCKET_NAME`: Name of your Google Cloud Storage bucket
+
+3. Make the script executable and run it:
 
 ```bash
-gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/class-report
-gcloud run deploy class-report --image gcr.io/YOUR_PROJECT_ID/class-report --platform managed
+chmod +x deploy.sh
+./deploy.sh
 ```
 
-3. Set environment variables:
+#### For Windows Users:
+
+1. Ensure you have installed and configured the Google Cloud SDK.
+
+2. Update the configuration variables in `deploy.ps1`:
+   - `$PROJECT_ID`: Your Google Cloud project ID
+   - `$SERVICE_NAME`: Name for your Cloud Run service (default: class-report)
+   - `$REGION`: GCP region to deploy to (default: us-central1)
+   - `$GCS_BUCKET_NAME`: Name of your Google Cloud Storage bucket
+
+3. Run the PowerShell script:
+
+```powershell
+.\deploy.ps1
+```
+
+### Manual Deployment
+
+If you prefer to deploy manually:
+
+1. Build the Docker image:
+
+```bash
+docker build -t gcr.io/YOUR_PROJECT_ID/class-report .
+```
+
+2. Push the image to Google Container Registry:
+
+```bash
+docker push gcr.io/YOUR_PROJECT_ID/class-report
+```
+
+3. Deploy to Cloud Run:
+
+```bash
+gcloud run deploy class-report \
+  --image gcr.io/YOUR_PROJECT_ID/class-report \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars="NOTION_API_KEY=,NOTION_DATABASE_ID=,GEMINI_API_KEY=,GCS_BUCKET_NAME="
+```
+
+### Environment Variables
 
 In the Google Cloud Console, set the following environment variables for your Cloud Run service:
-- `NOTION_API_KEY`
-- `NOTION_DATABASE_ID`
-- `GEMINI_API_KEY`
+- `NOTION_API_KEY`: Your Notion integration API key
+- `NOTION_DATABASE_ID`: ID of the Notion database where reports will be created
+- `GEMINI_API_KEY`: Your Google Gemini API key
+- `GCS_BUCKET_NAME`: Name of your Google Cloud Storage bucket
+- `GOOGLE_APPLICATION_CREDENTIALS`: Path to your service account JSON file (or use mounted secrets in Cloud Run)
+
+## Storage Service
+
+The application uses Google Cloud Storage (GCS) to store uploaded images. The `storage_service.py` module handles image uploads and storage.
+
+### Environment Variables
+
+To use the Storage Service, you need to set the following environment variables:
+
+- `GCS_BUCKET_NAME`: Name of your Google Cloud Storage bucket
+- `GOOGLE_APPLICATION_CREDENTIALS`: Path to your service account JSON file
+
+### Optional Feature
+
+The Storage Service is optional. If you don't set the GCS environment variables, the application will still work, but images will only be available locally and won't be uploaded to cloud storage.
+
+### Image Upload
+
+When you upload an image, the application will:
+1. Save the image temporarily to the local filesystem in the `temp` directory
+2. Upload the image to the GCS bucket and get a public URL
+3. Use the image URL in the Notion page
+4. Delete the temporary local file after it's been uploaded to GCS
+
+This ensures that images are stored in Google Cloud Storage and not on the local system, which is more suitable for production environments and provides better durability and availability.
+
+## Monitoring and Troubleshooting
+
+### Logs
+
+The application includes comprehensive logging to help diagnose issues:
+
+- **Application Logs**: Available in Cloud Run console under the "Logs" tab
+- **Local Logs**: When running locally, logs are output to the console
+
+### Common Issues
+
+1. **API Key Issues**: Ensure your API keys are correctly set in environment variables
+2. **Notion Permission Issues**: Verify your integration has access to both source pages and target database
+3. **Gemini API Errors**: Check quota limits and API key validity
+
+## Performance Optimization
+
+The application is configured with the following Cloud Run settings:
+
+- Memory: 512Mi
+- CPU: 1
+- Concurrency: 80 (maximum concurrent requests per instance)
+- Max instances: 10 (to control costs)
+- Min instances: 0 (scales to zero when not in use)
+
+Adjust these settings in the deployment scripts or Cloud Run console based on your usage patterns.
+
+## Security Considerations
+
+- API keys are stored as environment variables and never exposed in logs
+- The application runs as a non-root user in the container
+- HTTPS is enforced by Cloud Run
+- Input validation is implemented for all user inputs
 
 ## Notion API Setup
 

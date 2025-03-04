@@ -3,70 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
+    <title>錯誤 - 主日學週報生成器</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="icon" href="/static/favicon.ico">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            text-align: center;
-        }
-        h1 {
-            color: #c62828;
-            margin-bottom: 20px;
-        }
-        .error-icon {
-            color: #c62828;
-            font-size: 48px;
-            margin-bottom: 20px;
-        }
         .error-message {
-            margin: 30px 0;
+            background-color: #fff3f3;
+            border-radius: 10px;
             padding: 20px;
-            background-color: #ffebee;
-            border-radius: 4px;
-            color: #c62828;
-            text-align: left;
+            margin-bottom: 20px;
+            border-left: 5px solid #ef476f;
         }
-        .btn {
-            background-color: #2e7d32;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
+        
+        .error-title {
+            font-weight: bold;
+            color: #ef476f;
+            margin-bottom: 10px;
+        }
+        
+        .try-again-btn {
             display: inline-block;
-            transition: background-color 0.3s;
+            padding: 12px 25px;
+            background-color: #ef476f;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            font-family: 'Comic Neue', cursive;
         }
-        .btn:hover {
-            background-color: #1b5e20;
+        
+        .try-again-btn:hover {
+            background-color: #d64161;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .sad-animals {
+            font-size: 32px;
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="error-icon">✗</div>
-        <h1>Error Occurred</h1>
-        <p>We encountered a problem while generating your report.</p>
+        <div class="header-image">
+            <!-- Emoji as placeholder for an image -->
+            <span style="font-size: 80px;">✝️📖🙏👧👦</span>
+        </div>
+        <h1>✨ 主日學週報生成器 ✨</h1>
+        <p class="intro-text">哎呀！在生成週報時遇到了一些問題。</p>
         
         <div class="error-message">
-            <p><strong>Error details:</strong></p>
+            <p class="error-title"><span class="cute-icon">😢</span>錯誤詳情：</p>
             <p>{{ error_message }}</p>
         </div>
         
-        <a href="/" class="btn">Try Again</a>
+        <div class="sad-animals">
+            🙏 📖 ✝️ 🕊️ 🌈
+        </div>
+        
+        <a href="/" class="try-again-btn">
+            <span class="cute-icon">🌈</span> 再試一次
+        </a>
     </div>
+    
+    <script src="/js/main.js"></script>
 </body>
 </html>

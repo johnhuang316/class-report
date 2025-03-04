@@ -3,77 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
+    <title>週報生成成功</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="icon" href="/static/favicon.ico">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            text-align: center;
-        }
-        h1 {
-            color: #2e7d32;
-            margin-bottom: 20px;
-        }
-        .success-icon {
-            color: #2e7d32;
-            font-size: 48px;
-            margin-bottom: 20px;
-        }
-        .report-link {
-            margin: 30px 0;
-            padding: 20px;
-            background-color: #e8f5e9;
-            border-radius: 4px;
-            word-break: break-all;
-        }
-        .report-link a {
-            color: #2e7d32;
-            font-weight: bold;
-            text-decoration: none;
-        }
-        .report-link a:hover {
-            text-decoration: underline;
-        }
-        .btn {
-            background-color: #2e7d32;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
+        .notion-link {
             display: inline-block;
-            transition: background-color 0.3s;
+            padding: 12px 25px;
+            background-color: #2f3437;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            font-family: 'Comic Neue', cursive;
         }
-        .btn:hover {
-            background-color: #1b5e20;
+        
+        .notion-link:hover {
+            background-color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .new-report-btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #ef476f;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 18px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            font-family: 'Comic Neue', cursive;
+        }
+        
+        .new-report-btn:hover {
+            background-color: #d64161;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+            align-items: center;
+        }
+        
+        .success-message {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #06d6a0;
+        }
+        
+        .container {
+            text-align: center;
+            margin: 50px auto;
+            max-width: 500px;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+        
+        .header-image {
+            margin-bottom: 20px;
+        }
+        
+        .header-image span {
+            font-size: 80px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        
+        .intro-text {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .cute-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="success-icon">✓</div>
-        <h1>Report Generated Successfully!</h1>
-        <p>Your kindergarten daily report has been created and published to Notion.</p>
+        <div class="header-image">
+            <!-- Emoji as placeholder for an image -->
+            <span style="font-size: 80px;">✝️📖🙏👧👦</span>
+        </div>
+        <h1>✨ 主日學週報生成器 ✨</h1>
+        <p class="intro-text">您的週報已成功生成！現在可以在 Notion 中查看或創建新的週報。</p>
         
-        <div class="report-link">
-            <p>View your report here:</p>
-            <a href="{{ report_url }}" target="_blank">{{ report_url }}</a>
+        <div class="success-message">
+            <h3><span class="cute-icon">🎉</span>恭喜！您的週報已準備好</h3>
+            <p>您的主日學週報已成功上傳到 Notion。點擊下方按鈕查看您的週報或創建新的週報。</p>
         </div>
         
-        <a href="/" class="btn">Generate Another Report</a>
+        <div class="buttons">
+            <a href="{{ notion_page_url }}" target="_blank" class="notion-link">
+                <span class="cute-icon">📄</span> 在 Notion 中查看週報
+            </a>
+            <a href="/" class="new-report-btn">
+                <span class="cute-icon">✨</span> 再產生一篇
+            </a>
+        </div>
     </div>
 </body>
 </html>
