@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "主日學週報生成器測試工具"
+echo "==========================="
+echo ""
+echo "使用範例內容生成報告並發布到 Notion..."
+echo ""
+python test_report_generator.py --content-file sample_content.txt "$@"
+echo ""
+echo "如果要發布到不同的 Notion 數據庫，請使用："
+echo "./run_test.sh --notion-database your_database_id"
+echo ""
+echo "如果要指定報告日期，請使用："
+echo "./run_test.sh --report-date YYYY-MM-DD"
+echo ""
+echo "如果要啟用調試日誌，請使用："
+echo "./run_test.sh --debug"
