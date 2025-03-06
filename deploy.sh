@@ -12,10 +12,10 @@ else
     exit 1
 fi
 
-# Configuration - change these values as needed
-PROJECT_ID="jumido"
-SERVICE_NAME="class-report"
-REGION="us-central1"
+# Configuration - load from environment variables without defaults
+PROJECT_ID="${GCP_PROJECT_ID}"
+SERVICE_NAME="${SERVICE_NAME}"
+REGION="${GCP_REGION}"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
 
 # Check required environment variables
@@ -26,9 +26,27 @@ required_vars=(
     "GCS_BUCKET_NAME"
 )
 
+# Previously hardcoded variables that are now required
+additional_vars=(
+    "GCP_PROJECT_ID:Google Cloud Project ID"
+    "SERVICE_NAME:Cloud Run service name"
+    "GCP_REGION:Google Cloud region"
+)
+
+# Check all required environment variables
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
         echo "Error: Required environment variable $var is not set"
+        exit 1
+    fi
+done
+
+# Check previously hardcoded variables that are now required
+for var_info in "${additional_vars[@]}"; do
+    var_name="${var_info%%:*}"
+    var_desc="${var_info#*:}"
+    if [ -z "${!var_name}" ]; then
+        echo "Error: Missing required environment variable: $var_name - $var_desc"
         exit 1
     fi
 done

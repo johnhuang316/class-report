@@ -20,10 +20,10 @@ function Load-EnvFile {
 # Load environment variables
 Load-EnvFile
 
-# Configuration - load from environment variables with fallbacks
-$PROJECT_ID = if ($env:GCP_PROJECT_ID) { $env:GCP_PROJECT_ID } else { "jumido" }
-$SERVICE_NAME = if ($env:SERVICE_NAME) { $env:SERVICE_NAME } else { "class-report" }
-$REGION = if ($env:GCP_REGION) { $env:GCP_REGION } else { "us-central1" }
+# Configuration - load from environment variables without defaults
+$PROJECT_ID = $env:GCP_PROJECT_ID
+$SERVICE_NAME = $env:SERVICE_NAME
+$REGION = $env:GCP_REGION
 $IMAGE_NAME = "gcr.io/$PROJECT_ID/$SERVICE_NAME"
 
 # Verify required environment variables
@@ -34,11 +34,11 @@ $requiredEnvVars = @(
     "GCS_BUCKET_NAME"
 )
 
-# Verify optional environment variables with defaults
-$optionalEnvVars = @(
-    @{Name = "GCP_PROJECT_ID"; Default = "jumido"; Description = "Google Cloud Project ID"},
-    @{Name = "SERVICE_NAME"; Default = "class-report"; Description = "Cloud Run service name"},
-    @{Name = "GCP_REGION"; Default = "us-central1"; Description = "Google Cloud region"}
+# Verify environment variables that were previously optional
+$additionalEnvVars = @(
+    @{Name = "GCP_PROJECT_ID"; Description = "Google Cloud Project ID"},
+    @{Name = "SERVICE_NAME"; Description = "Cloud Run service name"},
+    @{Name = "GCP_REGION"; Description = "Google Cloud region"}
 )
 
 # Log environment configuration
@@ -48,9 +48,18 @@ Write-Host "  Service Name: $SERVICE_NAME"
 Write-Host "  Region: $REGION"
 Write-Host "  Image: $IMAGE_NAME"
 
+# Check all required environment variables
 foreach ($var in $requiredEnvVars) {
     if (-not (Get-Item "env:$var" -ErrorAction SilentlyContinue)) {
         Write-Host "Error: Missing required environment variable: $var"
+        exit 1
+    }
+}
+
+# Check previously optional environment variables that are now required
+foreach ($var in $additionalEnvVars) {
+    if (-not (Get-Item "env:$($var.Name)" -ErrorAction SilentlyContinue)) {
+        Write-Host "Error: Missing required environment variable: $($var.Name) - $($var.Description)"
         exit 1
     }
 }
