@@ -86,20 +86,21 @@ textarea:focus {
     cursor: pointer;
     font-size: 18px;
     font-weight: bold;
-    transition: transform 0.3s, background-color 0.3s;
-    display: block;
-    margin: 0 auto;
-    font-family: 'Comic Neue', cursive;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-decoration: none;
+    text-align: center;
+    margin: 10px;
 }
 
 .btn:hover {
     background-color: #05b589;
-    transform: scale(1.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .secondary-btn {
     background-color: #118ab2;
-    margin-right: 10px;
 }
 
 .secondary-btn:hover {
@@ -479,4 +480,71 @@ code {
     .btn {
         width: 100%;
     }
+}
+
+/* Reports list styles */
+.reports-list {
+    margin-top: 40px;
+    padding: 30px;
+    background-color: #fff9f0;
+    border-radius: 15px;
+    border: 3px dashed #ffd166;
+}
+
+.reports-list h2 {
+    color: #ff6b6b;
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 1.8em;
+}
+
+.reports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.report-item {
+    display: block;
+    padding: 15px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    text-decoration: none;
+    color: #4a4a4a;
+    transition: all 0.3s ease;
+    border: 2px solid #4ecdc4;
+}
+
+.report-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    border-color: #ff6b6b;
+}
+
+.report-date {
+    font-size: 1.1em;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.report-icon {
+    font-size: 2em;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.more-reports {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    margin-top: 15px;
+}
+
+.button-container {
+    text-align: center;
+    margin-top: 20px;
 }

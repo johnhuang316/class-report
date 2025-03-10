@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,11 +36,32 @@
                     <label for="images" class="file-upload-label">選擇照片</label>
                     <div id="file-preview" class="file-preview"></div>
                 </div>
-                <small class="hint">可選擇多張照片上傳</small>
+                <div class="hint">可選擇多張照片上傳</div>
             </div>
-            
-            <button type="submit" class="btn">生成週報 🚀</button>
+
+            <div class="button-container">
+                <button type="submit" class="btn">生成週報 🚀</button>
+            </div>
         </form>
+        
+        {% if reports %}
+        <div class="reports-list">
+            <h2><span class="cute-icon">📚</span> 已生成的週報</h2>
+            <div class="reports-grid">
+                {% for report in reports[:12] %}  <!-- 只顯示最新的12份報告 -->
+                <a href="{{ report.url }}" class="report-item" target="_blank">
+                    <div class="report-date">{{ report.date }}</div>
+                    <div class="report-icon">📖</div>
+                </a>
+                {% endfor %}
+            </div>
+            {% if reports|length > 12 %}
+            <div class="more-reports">
+                <p>還有 {{ reports|length - 12 }} 份更早的週報...</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
         
         <div class="examples">
             <h3><span class="cute-icon">💡</span>填寫提示</h3>

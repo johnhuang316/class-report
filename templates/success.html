@@ -1,132 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>週報生成成功</title>
+    <title>報告生成成功</title>
     <link rel="stylesheet" href="/static/css/styles.css">
-    <link rel="icon" href="/static/favicon.ico">
-    <style>
-        .notion-link {
-            display: inline-block;
-            padding: 12px 25px;
-            background-color: #2f3437;
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            font-size: 18px;
-            margin: 10px 0;
-            transition: all 0.3s ease;
-            font-family: 'Comic Neue', cursive;
-        }
-        
-        .notion-link:hover {
-            background-color: #000;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-        
-        .new-report-btn {
-            display: inline-block;
-            padding: 12px 25px;
-            background-color: #ef476f;
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            font-size: 18px;
-            margin: 10px 0;
-            transition: all 0.3s ease;
-            font-family: 'Comic Neue', cursive;
-        }
-        
-        .new-report-btn:hover {
-            background-color: #d64161;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-        
-        .buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 20px;
-            align-items: center;
-        }
-        
-        .success-message {
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-left: 5px solid #06d6a0;
-        }
-        
-        .container {
-            text-align: center;
-            margin: 50px auto;
-            max-width: 500px;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
-        }
-        
-        .header-image {
-            margin-bottom: 20px;
-        }
-        
-        .header-image span {
-            font-size: 80px;
-        }
-        
-        h1 {
-            color: #333;
-            font-size: 36px;
-            margin-bottom: 10px;
-        }
-        
-        .intro-text {
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
-        
-        .cute-icon {
-            font-size: 24px;
-            margin-right: 10px;
-        }
-        
-        body {
-            background-color: #f5f5f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
         <div class="header-image">
-            <!-- Emoji as placeholder for an image -->
-            <span style="font-size: 80px;">✝️📖🙏👧👦</span>
-        </div>
-        <h1>✨ 主日學週報生成器 ✨</h1>
-        <p class="intro-text">您的週報已成功生成！現在可以在 Notion 中查看或創建新的週報。</p>
-        
-        <div class="success-message">
-            <h3><span class="cute-icon">🎉</span>恭喜！您的週報已準備好</h3>
-            <p>您的主日學週報已成功上傳到 Notion。點擊下方按鈕查看您的週報或創建新的週報。</p>
+            <span style="font-size: 80px;" class="success-icon">🎉</span>
         </div>
         
-        <div class="buttons">
-            <a href="{{ notion_page_url }}" target="_blank" class="notion-link">
-                <span class="cute-icon">📄</span> 在 Notion 中查看週報
-            </a>
-            <a href="/" class="new-report-btn">
-                <span class="cute-icon">✨</span> 再產生一篇
-            </a>
+        <h1>報告生成成功！</h1>
+        
+        <div class="report-link">
+            <h2>{{ report_title }}</h2>
+            <p>您的報告已經成功生成！</p>
+            
+            <div class="action-buttons">
+                <a href="{{ page_url }}" class="btn" target="_blank">查看報告 🚀</a>
+                <a href="/" class="btn secondary-btn">返回首頁 🏠</a>
+            </div>
+
+            {% if permission_note %}
+            <div class="notion-tip">
+                <p><strong>注意：</strong> {{ permission_note }}</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="cute-animals">
+            🌈 ✨ 🎈 🧸 🎨
         </div>
     </div>
 </body>

@@ -59,7 +59,7 @@ async def generate_report_api(
         # 返回結果
         return {
             "success": True,
-            "notion_page_url": result["notion_page_url"],
+            "page_url": result["url"],
             "report_content": result["report_content"]
         }
         

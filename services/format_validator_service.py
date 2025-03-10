@@ -28,7 +28,7 @@ class FormatValidatorService:
         self.model = genai.GenerativeModel('gemini-2.0-flash-lite')
         logger.info("FormatValidatorService initialized successfully")
     
-    def validate_notion_format(self, content: str) -> Tuple[bool, str]:
+    def validate_markdown_format(self, content: str) -> Tuple[bool, str]:
         """
         Validate if the markdown content is compatible with Notion and fix any issues.
         
@@ -95,3 +95,15 @@ class FormatValidatorService:
         except Exception as e:
             logger.error(f"Error validating content with Gemini API: {str(e)}")
             return False, content
+
+    def validate_format(self, content: str) -> Tuple[bool, str]:
+        """
+        驗證並修復 Markdown 格式
+        
+        Args:
+            content: 要驗證的內容
+            
+        Returns:
+            Tuple[bool, str]: (是否有效, 修復後的內容)
+        """
+        return self.validate_markdown_format(content)

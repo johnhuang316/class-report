@@ -22,6 +22,14 @@ class AppSettings(BaseSettings):
     gcs_bucket_name: Optional[str] = Field(None, env="GCS_BUCKET_NAME")
     google_application_credentials: Optional[str] = Field(None, env="GOOGLE_APPLICATION_CREDENTIALS")
     
+    # GCP 部署配置
+    gcp_project_id: Optional[str] = Field(None, env="GCP_PROJECT_ID")
+    service_name: Optional[str] = Field(None, env="SERVICE_NAME")
+    gcp_region: Optional[str] = Field(None, env="GCP_REGION")
+    
+    # 輸出平台配置
+    output_platform: str = Field("notion", env="OUTPUT_PLATFORM")
+    
     # 應用程序配置
     app_name: str = "Sunday School Weekly Report Generator"
     app_description: str = "Generate weekly reports for Sunday School"
@@ -87,4 +95,5 @@ GEMINI_API_KEY = settings.gemini_api_key
 NOTION_API_KEY = settings.notion_api_key
 NOTION_DATABASE_ID = settings.notion_database_id
 GCS_BUCKET_NAME = settings.gcs_bucket_name
-GOOGLE_APPLICATION_CREDENTIALS = settings.google_application_credentials 
+GOOGLE_APPLICATION_CREDENTIALS = settings.google_application_credentials
+OUTPUT_PLATFORM = settings.output_platform 

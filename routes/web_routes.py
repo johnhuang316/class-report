@@ -21,19 +21,34 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 @router.get("/", response_class=HTMLResponse)
-async def root(request: Request):
+async def root(
+    request: Request,
+    report_service: Optional[ReportService] = Depends(get_report_service)
+):
     """
     根路徑，返回主頁面。
     
     Args:
         request: 請求對象
+        report_service: 報告服務實例
         
     Returns:
         HTMLResponse: 包含主頁面的 HTML 響應
     """
+    # 獲取已生成的報告列表
+    reports = []
+    if report_service and hasattr(report_service.output_platform, 'storage_service'):
+        try:
+            reports = report_service.output_platform.storage_service.list_reports()
+        except Exception as e:
+            logger.error(f"Failed to list reports: {str(e)}")
+    
     return templates.TemplateResponse(
         "index.html", 
-        {"request": request}
+        {
+            "request": request,
+            "reports": reports
+        }
     )
 
 @router.post("/submit-form", response_class=HTMLResponse)
@@ -82,10 +97,9 @@ async def submit_form(
         )
     
     # 初始化響應變量
-    notion_page_url = ""
+    page_url = ""
     report_title = report_service.generate_report_title(report_date)
     report_content = []
-    notion_permission_note = "Note: Notion API does not support setting page permissions automatically. Please set the page to 'Visible to everyone in the workspace' manually in Notion."
     error_message = None
     temp_image_paths = []
     
@@ -102,14 +116,29 @@ async def submit_form(
             image_paths=temp_image_paths
         )
         
+        if not result["success"]:
+            raise Exception(result.get("error", "Unknown error occurred"))
+        
         # 設置響應數據
-        notion_page_url = result["notion_page_url"]
+        page_url = result["url"]
         report_content = result["report_content"]
         
         # 添加背景任務以清理臨時文件
         background_tasks.add_task(file_service.clean_up_files, temp_image_paths)
         
-        logger.info(f"Successfully created Notion page: {notion_page_url}")
+        logger.info(f"Successfully created report page: {page_url}")
+        
+        # 返回成功頁面
+        return templates.TemplateResponse(
+            "success.html",
+            {
+                "request": request,
+                "page_url": page_url,
+                "report_title": report_title,
+                "report_content": report_content,
+                "permission_note": result.get("platform_specific_data", {}).get("workspace_access", "")
+            }
+        )
         
     except Exception as e:
         logger.error(f"Error processing form: {str(e)}")
@@ -125,16 +154,4 @@ async def submit_form(
                 "error_message": error_message
             },
             status_code=500
-        )
-        
-    # 返回成功頁面
-    return templates.TemplateResponse(
-        "success.html",
-        {
-            "request": request,
-            "notion_page_url": notion_page_url,
-            "report_title": report_title,
-            "report_content": report_content,
-            "notion_permission_note": notion_permission_note
-        }
-    ) 
+        ) 

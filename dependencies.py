@@ -2,7 +2,8 @@
 依賴注入模組 - 處理服務初始化和依賴注入
 """
 import logging
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict, Any
+from functools import lru_cache
 
 from fastapi import Depends
 
@@ -13,152 +14,145 @@ from services.storage_service import StorageService
 from services.format_validator_service import FormatValidatorService
 from services.report_service import ReportService
 from services.file_service import FileService
+from services.platforms.notion_platform import NotionPlatform
+from services.platforms.gcs_platform import GCSPlatform
+from services.interfaces import OutputPlatformInterface
 from utils.common.logging_utils import get_logger
 
 # 配置日誌
 logger = get_logger("dependencies")
 
-# 服務實例緩存
-_gemini_service: Optional[GeminiService] = None
-_notion_service: Optional[NotionService] = None
-_format_validator_service: Optional[FormatValidatorService] = None
-_storage_service: Optional[StorageService] = None
-_report_service: Optional[ReportService] = None
-_file_service: Optional[FileService] = None
+class ServiceContainer:
+    """服務容器類，負責管理所有服務實例"""
+    
+    def __init__(self):
+        self._services: Dict[str, Any] = {}
+        
+    def get_or_create(self, service_key: str, factory_func) -> Any:
+        """
+        獲取或創建服務實例
+        
+        Args:
+            service_key: 服務的唯一標識
+            factory_func: 創建服務的工廠函數
+            
+        Returns:
+            Any: 服務實例
+        """
+        if service_key not in self._services:
+            self._services[service_key] = factory_func()
+        return self._services[service_key]
+    
+    def clear(self):
+        """清除所有服務實例"""
+        self._services.clear()
+
+# 創建全局服務容器實例
+service_container = ServiceContainer()
 
 def get_gemini_service() -> Optional[GeminiService]:
-    """
-    獲取 Gemini 服務實例
-    
-    Returns:
-        Optional[GeminiService]: Gemini 服務實例，如果初始化失敗則返回 None
-    """
-    global _gemini_service
-    
-    if _gemini_service is None:
+    """獲取 Gemini 服務實例"""
+    def create_service():
         try:
-            _gemini_service = GeminiService(settings.gemini_api_key)
-            logger.info("Gemini service initialized successfully")
+            return GeminiService(api_key=settings.gemini_api_key)
         except Exception as e:
-            logger.error(f"Error initializing Gemini service: {str(e)}")
-            _gemini_service = None
-            
-    return _gemini_service
+            logger.error(f"Failed to initialize Gemini service: {str(e)}")
+            return None
+    
+    return service_container.get_or_create("gemini", create_service)
 
 def get_notion_service() -> Optional[NotionService]:
-    """
-    獲取 Notion 服務實例
-    
-    Returns:
-        Optional[NotionService]: Notion 服務實例，如果初始化失敗則返回 None
-    """
-    global _notion_service
-    
-    if _notion_service is None:
+    """獲取 Notion 服務實例"""
+    def create_service():
         try:
-            _notion_service = NotionService(settings.notion_api_key)
-            logger.info("Notion service initialized successfully")
+            service = NotionService(api_key=settings.notion_api_key)
+            service.database_id = settings.notion_database_id
+            return service
         except Exception as e:
-            logger.error(f"Error initializing Notion service: {str(e)}")
-            _notion_service = None
-            
-    return _notion_service
+            logger.error(f"Failed to initialize Notion service: {str(e)}")
+            return None
+    
+    return service_container.get_or_create("notion", create_service)
 
 def get_format_validator_service() -> Optional[FormatValidatorService]:
-    """
-    獲取格式驗證服務實例
-    
-    Returns:
-        Optional[FormatValidatorService]: 格式驗證服務實例，如果初始化失敗則返回 None
-    """
-    global _format_validator_service
-    
-    if _format_validator_service is None:
+    """獲取格式驗證服務實例"""
+    def create_service():
         try:
-            _format_validator_service = FormatValidatorService(settings.gemini_api_key)
-            logger.info("Format Validator service initialized successfully")
+            return FormatValidatorService(api_key=settings.gemini_api_key)
         except Exception as e:
-            logger.error(f"Error initializing Format Validator service: {str(e)}")
-            _format_validator_service = None
-            
-    return _format_validator_service
+            logger.error(f"Failed to initialize Format Validator service: {str(e)}")
+            return None
+    
+    return service_container.get_or_create("format_validator", create_service)
 
 def get_storage_service() -> Optional[StorageService]:
-    """
-    獲取存儲服務實例
-    
-    Returns:
-        Optional[StorageService]: 存儲服務實例，如果初始化失敗則返回 None
-    """
-    global _storage_service
-    
-    if _storage_service is None:
+    """獲取存儲服務實例"""
+    def create_service():
         try:
-            _storage_service = StorageService()
-            logger.info("Storage service initialized successfully")
+            return StorageService()
         except Exception as e:
-            logger.warning(f"Storage service initialization failed: {str(e)}")
+            logger.warning(f"Failed to initialize Storage service: {str(e)}")
             logger.warning("Application will continue without GCS storage capabilities")
-            _storage_service = None
-            
-    return _storage_service
+            return None
+    
+    return service_container.get_or_create("storage", create_service)
 
-def get_file_service() -> FileService:
-    """
-    獲取文件服務實例
+def get_file_service() -> Optional[FileService]:
+    """獲取文件服務實例"""
+    def create_service():
+        try:
+            return FileService()
+        except Exception as e:
+            logger.error(f"Failed to initialize File service: {str(e)}")
+            return None
     
-    Returns:
-        FileService: 文件服務實例
-    """
-    global _file_service
+    return service_container.get_or_create("file", create_service)
+
+def get_output_platform(
+    notion_service: Optional[NotionService] = Depends(get_notion_service),
+    storage_service: Optional[StorageService] = Depends(get_storage_service)
+) -> Optional[OutputPlatformInterface]:
+    """獲取輸出平台實例"""
+    def create_platform():
+        platform_type = str(settings.output_platform).lower()
+        
+        if platform_type == "notion" and notion_service:
+            return NotionPlatform(notion_service)
+        elif platform_type == "gcs" and storage_service:
+            return GCSPlatform(storage_service)
+        else:
+            raise ValueError(f"Invalid or unavailable platform type: {platform_type}")
     
-    if _file_service is None:
-        _file_service = FileService()
-        logger.info("File service initialized successfully")
-            
-    return _file_service
+    return service_container.get_or_create("output_platform", create_platform)
 
 def get_report_service(
     gemini_service: Optional[GeminiService] = Depends(get_gemini_service),
-    notion_service: Optional[NotionService] = Depends(get_notion_service),
+    output_platform: Optional[OutputPlatformInterface] = Depends(get_output_platform),
     format_validator_service: Optional[FormatValidatorService] = Depends(get_format_validator_service)
 ) -> Optional[ReportService]:
-    """
-    獲取報告服務實例
-    
-    Args:
-        gemini_service: Gemini 服務實例
-        notion_service: Notion 服務實例
-        format_validator_service: 格式驗證服務實例
-        
-    Returns:
-        Optional[ReportService]: 報告服務實例，如果依賴服務初始化失敗則返回 None
-    """
-    global _report_service
-    
-    # 檢查依賴服務是否可用
-    if not gemini_service or not notion_service or not format_validator_service:
-        logger.error("Required services for ReportService are not available")
-        return None
-    
-    if _report_service is None:
-        _report_service = ReportService(gemini_service, notion_service, format_validator_service)
-        logger.info("Report service initialized successfully")
+    """獲取報告服務實例"""
+    def create_service():
+        if not all([gemini_service, output_platform, format_validator_service]):
+            logger.error("Required services for ReportService are not available")
+            return None
             
-    return _report_service
-
-def get_all_services() -> Tuple[Optional[GeminiService], Optional[NotionService], Optional[FormatValidatorService], Optional[StorageService], Optional[ReportService], FileService]:
-    """
-    獲取所有服務實例
+        service = ReportService(
+            gemini_service=gemini_service,
+            output_platform=output_platform,
+            format_validator_service=format_validator_service
+        )
+        logger.info("Report service initialized successfully")
+        return service
     
-    Returns:
-        Tuple: 所有服務實例的元組
-    """
+    return service_container.get_or_create("report", create_service)
+
+def get_all_services() -> Tuple[Optional[GeminiService], Optional[NotionService], Optional[FormatValidatorService], Optional[StorageService], Optional[ReportService], Optional[FileService]]:
+    """獲取所有服務實例"""
     gemini_service = get_gemini_service()
     notion_service = get_notion_service()
     format_validator_service = get_format_validator_service()
     storage_service = get_storage_service()
     file_service = get_file_service()
-    report_service = get_report_service(gemini_service, notion_service, format_validator_service)
+    report_service = get_report_service(gemini_service, get_output_platform(notion_service, storage_service), format_validator_service)
     
     return gemini_service, notion_service, format_validator_service, storage_service, report_service, file_service 
