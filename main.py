@@ -6,6 +6,7 @@ import asyncio
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import shutil
+import re
 
 # Import FastAPI and related libraries
 from fastapi import FastAPI, Form, File, UploadFile, Request, HTTPException
@@ -168,7 +169,7 @@ async def generate_report_api(report_request: ReportRequest):
         
         # Create Notion page
         page_url, page_id = notion_service.create_page(
-            title="Sunday School Weekly Report",
+            title=f"🌈✨ 幼幼班主日學週報 - {report_request.report_date[:4]}年{report_request.report_date[5:7]}月{report_request.report_date[8:10]}日 🧸🎈",
             content=report_content,
             image_paths=image_paths,
             report_date=report_request.report_date
@@ -243,7 +244,7 @@ async def submit_form(
     
     # Initialize response variables
     notion_page_url = ""
-    report_title = "Sunday School Weekly Report"
+    report_title = f"🌈✨ 幼幼班主日學週報 - {report_date[:4]}年{report_date[5:7]}月{report_date[8:10]}日 🧸🎈"
     report_content = []
     notion_permission_note = "Note: Notion API does not support setting page permissions automatically. Please set the page to 'Visible to everyone in the workspace' manually in Notion."
     error_message = None

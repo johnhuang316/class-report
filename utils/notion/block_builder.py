@@ -44,15 +44,15 @@ class NotionBlockBuilder:
                     {
                         "type": "text",
                         "text": {
-                            "content": "歡迎閱讀本週主日學報告！以下是本週的活動摘要和精彩時刻。"
+                            "content": "歡迎閱讀幼幼班本週主日學報告！以下是小朋友們的活動摘要和精彩時刻。"
                         }
                     }
                 ],
                 "icon": {
                     "type": "emoji",
-                    "emoji": "📝"
+                    "emoji": "🧸"
                 },
-                "color": "blue_background"
+                "color": "pink_background"
             }
         })
         
@@ -78,11 +78,11 @@ class NotionBlockBuilder:
                         {
                             "type": "text",
                             "text": {
-                                "content": "📸 活動照片集錦"
+                                "content": "📸 小朋友活動照片集"
                             }
                         }
                     ],
-                    "color": "blue_background"
+                    "color": "pink_background"
                 }
             })
             
@@ -95,7 +95,7 @@ class NotionBlockBuilder:
                         {
                             "type": "text",
                             "text": {
-                                "content": "以下是本週活動的精彩瞬間："
+                                "content": "以下是小朋友們本週活動的可愛瞬間："
                             },
                             "annotations": {
                                 "italic": True
@@ -120,11 +120,12 @@ class NotionBlockBuilder:
                     {
                         "type": "text",
                         "text": {
-                            "content": "感謝您閱讀本週報告！下週再見！"
+                            "content": "感謝您閱讀本週幼幼班報告！小朋友們下週見！🌈✨"
                         },
                         "annotations": {
                             "italic": True,
-                            "color": "gray"
+                            "bold": True,
+                            "color": "purple"
                         }
                     }
                 ],
@@ -217,12 +218,11 @@ class NotionBlockBuilder:
                             "content": title
                         },
                         "annotations": {
-                            "bold": True,
-                            "color": "blue"
+                            "bold": True
                         }
                     }
                 ],
-                "color": "default"
+                "color": "pink_background"
             }
         }
     
@@ -244,14 +244,16 @@ class NotionBlockBuilder:
                     {
                         "type": "text",
                         "text": {
-                            "content": date
+                            "content": "📅 日期：" + date
                         },
                         "annotations": {
                             "italic": True,
-                            "color": "gray"
+                            "bold": True,
+                            "color": "purple"
                         }
                     }
-                ]
+                ],
+                "color": "default"
             }
         }
     
