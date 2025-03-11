@@ -78,7 +78,7 @@ textarea:focus {
 }
 
 .btn {
-    background-color: #06d6a0;
+    background-color: #ffd166;
     color: white;
     border: none;
     padding: 14px 25px;
@@ -93,14 +93,23 @@ textarea:focus {
     margin: 10px;
 }
 
+.btn-error {
+    background-color: #ef476f;
+}
+.btn-error:hover {
+    background-color: #d64161;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
 .btn:hover {
-    background-color: #05b589;
+    background-color: #e6b852;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .secondary-btn {
     background-color: #118ab2;
+    color: white !important;
 }
 
 .secondary-btn:hover {
@@ -207,16 +216,15 @@ code {
 }
 
 .error-message {
-    margin: 30px auto;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
     padding: 20px;
-    background-color: #ffebee;
-    border-radius: 15px;
-    color: #c62828;
+    border-radius: 8px;
+    margin-bottom: 20px;
     text-align: left;
     max-width: 80%;
-    border: 2px dashed #ef476f;
 }
-
 .error-title {
     font-size: 1.3em;
     color: #ef476f;
@@ -428,12 +436,13 @@ code {
 }
 
 .primary-btn {
-    background-color: #2e3192;
+    background-color: #ef476f;
+    color: white;
     margin-right: 10px;
 }
 
 .primary-btn:hover {
-    background-color: #1e1f7a;
+    background-color: #d43f62;
 }
 
 /* Print styles */
