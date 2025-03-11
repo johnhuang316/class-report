@@ -50,7 +50,7 @@
             <div class="reports-grid">
                 {% for report in reports[:12] %}  <!-- 只顯示最新的12份報告 -->
                 <a href="{{ report.url }}" class="report-item" target="_blank">
-                    <div class="report-date">{{ report.date }}</div>
+                    <div class="report-date">{{ report.name }}</div>
                     <div class="report-icon">📖</div>
                 </a>
                 {% endfor %}

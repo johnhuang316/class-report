@@ -255,8 +255,8 @@ class GCSPlatform(OutputPlatformInterface):
             html_content = self._generate_html_content(title, content, image_paths)
             
             # 生成帶時間戳的文件名
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"sunday_school_report_{report_date}_{timestamp}"
+            timestamp = datetime.now().strftime("%H%M%S")
+            filename = f"{title}_{timestamp}"
             
             # 上傳到 GCS
             page_url = self.storage_service.upload_html(html_content, filename)

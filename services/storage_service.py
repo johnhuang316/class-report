@@ -179,7 +179,7 @@ class StorageService:
             # Collect properties of HTML files
             html_files = [
                 {
-                    "name": blob.name,
+                    "name": os.path.basename(blob.name),
                     "url": f"https://storage.googleapis.com/{self.bucket_name}/{blob.name}",
                     "date": blob.updated
                 }
