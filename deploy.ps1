@@ -31,7 +31,8 @@ $requiredEnvVars = @(
     "NOTION_API_KEY",
     "NOTION_DATABASE_ID",
     "GEMINI_API_KEY",
-    "GCS_BUCKET_NAME"
+    "GCS_BUCKET_NAME",
+    "OUTPUT_PLATFORM"
 )
 
 # Verify environment variables that were previously optional
@@ -75,7 +76,7 @@ gcloud run deploy $SERVICE_NAME `
     --platform managed `
     --region $REGION `
     --allow-unauthenticated `
-    --set-env-vars="NOTION_API_KEY=$env:NOTION_API_KEY,NOTION_DATABASE_ID=$env:NOTION_DATABASE_ID,GEMINI_API_KEY=$env:GEMINI_API_KEY,GCS_BUCKET_NAME=$env:GCS_BUCKET_NAME" `
+    --set-env-vars="NOTION_API_KEY=$env:NOTION_API_KEY,NOTION_DATABASE_ID=$env:NOTION_DATABASE_ID,GEMINI_API_KEY=$env:GEMINI_API_KEY,GCS_BUCKET_NAME=$env:GCS_BUCKET_NAME,OUTPUT_PLATFORM=$env:OUTPUT_PLATFORM" `
     --memory 256Mi `
     --cpu 1 `
     --concurrency 80 `

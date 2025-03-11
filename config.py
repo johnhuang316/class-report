@@ -28,7 +28,7 @@ class AppSettings(BaseSettings):
     gcp_region: Optional[str] = Field(None, env="GCP_REGION")
     
     # 輸出平台配置
-    output_platform: str = Field("notion", env="OUTPUT_PLATFORM")
+    output_platform: str = Field("gcs", env="OUTPUT_PLATFORM")
     
     # 應用程序配置
     app_name: str = "Sunday School Weekly Report Generator"
@@ -36,7 +36,7 @@ class AppSettings(BaseSettings):
     app_version: str = "1.0.0"
     
     # 報告配置
-    report_title_template: str = "🌈✨ 幼幼班主日學週報 - {date} 🧸🎈"
+    report_title_template: str = "🌈✨ 主日學週報 - {date} 🧸🎈"
     
     # 服務器配置
     host: str = "0.0.0.0"
