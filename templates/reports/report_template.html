@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.8;
+            color: #4a4a4a;
+            margin: 0;
+            padding: 20px;
+            background-color: #fef6e6;
+            background-image: 
+                radial-gradient(#ffd1d1 2px, transparent 2px),
+                radial-gradient(#ffd1d1 2px, transparent 2px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border: 8px solid #ffd166;
+            position: relative;
+        }
+        h1 {
+            color: #ff6b6b;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 0 #ffd166;
+            letter-spacing: 2px;
+        }
+        .content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 3px dashed #4ecdc4;
+            margin-bottom: 30px;
+        }
+        .image-gallery {
+            margin-top: 40px;
+            padding: 30px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 3px dashed #ff9f1c;
+        }
+        .image-gallery h2 {
+            color: #ff9f1c;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+            text-shadow: 1px 1px 0 #ffe66d;
+        }
+        .image-gallery figure {
+            margin: 20px 0;
+            padding: 15px;
+            text-align: center;
+            background-color: #fff9f0;
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+        }
+        .image-gallery figure:hover {
+            transform: translateY(-5px);
+        }
+        .image-gallery img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            border: 5px solid white;
+        }
+        .image-gallery figcaption {
+            color: #666;
+            font-size: 1.1em;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        blockquote {
+            border-left: 6px solid #4ecdc4;
+            margin: 20px 0;
+            padding: 20px;
+            color: #2c3e50;
+            background-color: #f8f9fa;
+            border-radius: 0 15px 15px 0;
+            font-size: 1.1em;
+        }
+        .content h2 {
+            color: #ff6b6b;
+            margin-top: 1.5em;
+            padding-bottom: 0.5em;
+            border-bottom: 3px dashed #ffd166;
+            font-size: 1.8em;
+        }
+        .content h3 {
+            color: #4ecdc4;
+            margin-top: 1.2em;
+            font-size: 1.5em;
+        }
+        .content p {
+            margin: 1em 0;
+            line-height: 2;
+            font-size: 1.1em;
+        }
+        .content strong {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        .content ul, .content ol {
+            background-color: #fff9f0;
+            padding: 20px 40px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        .content li {
+            margin: 10px 0;
+            line-height: 1.8;
+            font-size: 1.1em;
+        }
+        .content li::marker {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        .emoji-divider {
+            text-align: center;
+            font-size: 2em;
+            margin: 30px 0;
+            letter-spacing: 10px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .original-markdown {
+            display: none;
+        }
+        .show-original-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #4ecdc4;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .show-original-btn:hover {
+            background-color: #3dbcb3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .original-content-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 700px;
+            max-height: 80vh;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1000;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .original-content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        .original-content-header h2 {
+            margin: 0;
+            color: #4a4a4a;
+            font-size: 1.5em;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .close-btn:hover {
+            color: #ff6b6b;
+        }
+        .original-content {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(80vh - 70px);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            font-family: monospace;
+            background-color: #f8f9fa;
+            border-radius: 0 0 15px 15px;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .content {
+                padding: 20px;
+            }
+            .show-original-btn {
+                top: 10px;
+                right: 10px;
+                padding: 5px 10px;
+                font-size: 12px;
+            }
+            .original-content-container {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="overlay" class="overlay" onclick="hideOriginalContent()"></div>
+    
+    {% if original_content %}
+    <div id="original-content-container" class="original-content-container" style="display: none;">
+        <div class="original-content-header">
+            <h2>📝 原始輸入內容</h2>
+            <button onclick="hideOriginalContent()" class="close-btn">✖</button>
+        </div>
+        <div class="original-content">
+            {{ original_content|e|nl2br|safe }}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="container">
+        <h1>{{ title }}</h1>
+        
+        {% if original_content %}
+        <button class="show-original-btn" onclick="showOriginalContent()">
+            <span>📝</span> 查看原始輸入
+        </button>
+        {% endif %}
+        
+        <div class="emoji-divider">
+            🌈 ✨ 🎈 🧸 🎨
+        </div>
+        
+        <div class="content">
+            {{ content_html|safe }}
+        </div>
+        
+        {% if images_html %}
+        <div class="image-gallery">
+            <h2>📸 今日活動花絮 ✨</h2>
+            {{ images_html|safe }}
+        </div>
+        {% endif %}
+        
+        <div class="emoji-divider">
+            🙏 📖 ✝️ 🕊️ 💖
+        </div>
+        
+        <div class="footer">
+            <p>願神祝福每一位小朋友！</p>
+        </div>
+        
+        <!-- 原始 Markdown 內容，用於編輯 -->
+        <div class="original-markdown" id="original-markdown" data-content="{{ original_markdown|e }}"></div>
+    </div>
+    
+    <script>
+        function showOriginalContent() {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('original-content-container').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function hideOriginalContent() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('original-content-container').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    </script>
+</body>
+</html> 

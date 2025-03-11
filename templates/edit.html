@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>編輯週報 - 主日學週報生成器</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="icon" href="/static/favicon.ico">
+    <!-- SimpleMDE Markdown 編輯器 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    <style>
+        .edit-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .edit-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .edit-form {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .btn-primary {
+            background-color: #4dabf7;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: #f1f3f5;
+            color: #495057;
+        }
+        
+        .btn-primary:hover {
+            background-color: #339af0;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+        
+        /* SimpleMDE 編輯器樣式覆蓋 */
+        .CodeMirror {
+            height: 500px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .editor-toolbar {
+            border-radius: 5px 5px 0 0;
+            border: 1px solid #ddd;
+            border-bottom: none;
+        }
+        
+        .editor-preview {
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="edit-container">
+        <div class="edit-header">
+            <h1>✏️ 編輯週報</h1>
+            <p>{{ report_date }}</p>
+        </div>
+        
+        <div class="edit-form">
+            <form action="/update-report/{{ report_path }}" method="post">
+                <div class="form-group">
+                    <label for="content">Markdown 內容：</label>
+                    <textarea id="content" name="content" class="form-control">{{ markdown_content }}</textarea>
+                    <small class="hint">使用 Markdown 格式編輯內容，支持標題、列表、粗體、斜體等格式</small>
+                </div>
+                
+                <div class="button-group">
+                    <a href="/" class="btn btn-secondary">取消</a>
+                    <button type="submit" class="btn btn-primary">保存更改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- SimpleMDE Markdown 編輯器 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+    <script>
+        // 初始化 Markdown 編輯器
+        var simplemde = new SimpleMDE({
+            element: document.getElementById("content"),
+            spellChecker: false,
+            autosave: {
+                enabled: true,
+                uniqueId: "editor-{{ report_path }}",
+                delay: 1000,
+            },
+            toolbar: [
+                "bold", "italic", "heading", "|", 
+                "quote", "unordered-list", "ordered-list", "|", 
+                "link", "image", "|", 
+                "preview", "side-by-side", "fullscreen", "|", 
+                "guide"
+            ],
+            placeholder: "在此輸入 Markdown 格式的內容...",
+            status: ["autosave", "lines", "words", "cursor"]
+        });
+    </script>
+</body>
+</html> 

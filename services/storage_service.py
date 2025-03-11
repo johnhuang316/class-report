@@ -181,7 +181,8 @@ class StorageService:
                 {
                     "name": os.path.basename(blob.name),
                     "url": f"https://storage.googleapis.com/{self.bucket_name}/{blob.name}",
-                    "date": blob.updated
+                    "date": blob.updated,
+                    "path": blob.name  # 添加完整路徑，用於刪除和編輯操作
                 }
                 for blob in blobs if blob.name.endswith('.html')
             ]
@@ -196,3 +197,69 @@ class StorageService:
         except Exception as e:
             logger.error(f"Error listing reports in GCS: {str(e)}")
             return []
+
+    def delete_report(self, report_path: str) -> bool:
+        """
+        刪除指定路徑的報告文件
+        
+        Args:
+            report_path: 報告文件的完整路徑
+            
+        Returns:
+            bool: 刪除操作是否成功
+        """
+        logger.info(f"Deleting report from GCS: {report_path}")
+        
+        try:
+            # 獲取 bucket
+            bucket = self.client.bucket(self.bucket_name)
+            # 創建 blob
+            blob = bucket.blob(report_path)
+            
+            # 檢查文件是否存在
+            if not blob.exists():
+                logger.warning(f"Report file not found: {report_path}")
+                return False
+                
+            # 刪除文件
+            blob.delete()
+            logger.info(f"Report deleted from GCS: {report_path}")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error deleting report from GCS: {str(e)}")
+            return False
+            
+    def get_report_content(self, report_path: str) -> str:
+        """
+        獲取指定報告的 HTML 內容
+        
+        Args:
+            report_path: 報告文件的完整路徑
+            
+        Returns:
+            str: 報告的 HTML 內容，如果獲取失敗則返回 None
+        """
+        logger.info(f"Getting report content from GCS: {report_path}")
+        
+        try:
+            # 獲取 bucket
+            bucket = self.client.bucket(self.bucket_name)
+            # 創建 blob
+            blob = bucket.blob(report_path)
+            
+            # 檢查文件是否存在
+            if not blob.exists():
+                logger.warning(f"Report file not found: {report_path}")
+                return None
+                
+            # 獲取內容
+            content = blob.download_as_text()
+            logger.info(f"Report content retrieved from GCS: {report_path}")
+            
+            return content
+            
+        except Exception as e:
+            logger.error(f"Error getting report content from GCS: {str(e)}")
+            return None

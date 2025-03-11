@@ -44,7 +44,7 @@ class NotionBlockBuilder:
                     {
                         "type": "text",
                         "text": {
-                            "content": "歡迎閱讀幼幼班本週主日學報告！以下是小朋友們的活動摘要和精彩時刻。"
+                            "content": "歡迎閱讀幼兒部本週主日學報告！以下是小朋友們的活動摘要和精彩時刻。"
                         }
                     }
                 ],
@@ -120,7 +120,7 @@ class NotionBlockBuilder:
                     {
                         "type": "text",
                         "text": {
-                            "content": "感謝您閱讀本週幼幼班報告！小朋友們下週見！🌈✨"
+                            "content": "感謝您閱讀本週幼兒部報告！小朋友們下週見！🌈✨"
                         },
                         "annotations": {
                             "italic": True,

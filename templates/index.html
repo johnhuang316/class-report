@@ -6,6 +6,107 @@
     <title>主日學週報生成器</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="icon" href="/static/favicon.ico">
+    <style>
+        /* 報告卡片樣式 */
+        .report-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .report-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+        
+        .report-actions {
+            display: flex;
+            justify-content: space-around;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+        
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-decoration: none;
+            transition: background-color 0.2s ease;
+        }
+        
+        .edit-btn:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .delete-btn:hover {
+            background-color: #ffebee;
+        }
+        
+        /* 確認刪除對話框 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .modal-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s ease;
+        }
+        
+        .cancel-btn {
+            background-color: #f1f3f5;
+            color: #495057;
+        }
+        
+        .confirm-btn {
+            background-color: #ff6b6b;
+            color: white;
+        }
+        
+        .cancel-btn:hover {
+            background-color: #e9ecef;
+        }
+        
+        .confirm-btn:hover {
+            background-color: #fa5252;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -49,10 +150,20 @@
             <h2><span class="cute-icon">📚</span> 已生成的週報</h2>
             <div class="reports-grid">
                 {% for report in reports[:12] %}  <!-- 只顯示最新的12份報告 -->
-                <a href="{{ report.url }}" class="report-item" target="_blank">
-                    <div class="report-date">{{ report.name }}</div>
-                    <div class="report-icon">📖</div>
-                </a>
+                <div class="report-card">
+                    <a href="{{ report.url }}" class="report-item" target="_blank">
+                        <div class="report-date">{{ report.name }}</div>
+                        <div class="report-icon">📖</div>
+                    </a>
+                    <div class="report-actions">
+                        <a href="/edit-report/{{ report.path }}" class="action-btn edit-btn" title="編輯報告">
+                            <span>✏️</span>
+                        </a>
+                        <a href="#" onclick="confirmDelete('/delete-report/{{ report.path }}', '{{ report.name }}'); return false;" class="action-btn delete-btn" title="刪除報告">
+                            <span>🗑️</span>
+                        </a>
+                    </div>
+                </div>
                 {% endfor %}
             </div>
             {% if reports|length > 12 %}
@@ -78,5 +189,47 @@
     </div>
     
     <script src="/static/js/main.js"></script>
+    
+    <!-- 確認刪除對話框 -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h3>確認刪除</h3>
+            <p id="deleteMessage">您確定要刪除這份報告嗎？</p>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel-btn" onclick="closeModal()">取消</button>
+                <button class="modal-btn confirm-btn" onclick="proceedDelete()">確認刪除</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 刪除確認相關函數
+        let deleteUrl = '';
+        
+        function confirmDelete(url, reportName) {
+            deleteUrl = url;
+            document.getElementById('deleteMessage').textContent = `您確定要刪除「${reportName}」這份報告嗎？此操作無法撤銷。`;
+            document.getElementById('deleteModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+        
+        function proceedDelete() {
+            if (deleteUrl) {
+                window.location.href = deleteUrl;
+            }
+            closeModal();
+        }
+        
+        // 點擊模態框外部關閉
+        window.onclick = function(event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
 </body>
 </html>

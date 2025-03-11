@@ -56,7 +56,7 @@ class ReportService:
             生成的報告標題
         """
         formatted_date = self.format_date_for_display(report_date)
-        return f"🌈✨ 幼幼班主日學週報 - {formatted_date} 🧸🎈"
+        return f"🌈✨ 幼兒部主日學週報 - {formatted_date} 🧸🎈"
     
     def generate_report_content(self, content: str) -> Tuple[List[str], bool]:
         """
@@ -132,7 +132,8 @@ class ReportService:
             title=report_title,
             content=report_content,
             report_date=report_date,
-            image_paths=cloud_image_urls
+            image_paths=cloud_image_urls,
+            original_content=content  # 傳遞原始內容
         )
         
         # 返回結果
