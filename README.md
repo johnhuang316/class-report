@@ -1,23 +1,27 @@
-# Kindergarten Daily Report Generator
+# Sunday School Report Generator
 
-This project provides a simple web interface that allows kindergarten teachers to generate daily reports by uploading photos and entering classroom notes. The system uses AI to generate a comprehensive report and publishes it to Notion, returning a link to the new page.
+This project provides a simple web interface that allows Sunday school teachers to generate reports by uploading photos and entering classroom notes. The system uses AI to generate comprehensive reports and publishes them to Google Cloud Storage or Notion, returning a link to the new page.
 
 ## Features
 
 - Web interface for easy report generation
 - Upload photos directly from your device
 - Enter classroom notes and activities
-- Generate AI-powered daily reports using Google Gemini
-- Automatically publish reports to Notion
-- Store images in Google Cloud Storage
-- Return links to the new Notion pages
+- Generate AI-powered reports using Google Gemini
+- Automatically publish reports to Google Cloud Storage or Notion
+- Support for editing and updating published reports
+- Support for deleting unwanted reports
+- Support for customizing report titles
+- Support for Markdown formatting in content editing
+- All links open in new tabs, enhancing user experience
+- Return links to the new pages
 
 ## Technical Architecture
 
 - **Backend**: FastAPI (Python)
 - **Frontend**: HTML/CSS/JavaScript with Jinja2 Templates
 - **AI Generation**: Google Gemini API
-- **Data Target**: Notion API
+- **Data Target**: Google Cloud Storage or Notion API
 - **File Storage**: Google Cloud Storage (GCS)
 - **Deployment**: Google Cloud Run
 
@@ -26,27 +30,46 @@ This project provides a simple web interface that allows kindergarten teachers t
 ```
 class-report/
 ├── main.py                 # Main application file
+├── config.py               # Configuration settings
+├── dependencies.py         # Dependency injection
 ├── requirements.txt        # Project dependencies
 ├── .env                    # Environment variables (not in repo)
 ├── .env.example            # Example environment variables
+├── routes/                 # Route modules
+│   ├── __init__.py         # Package initialization
+│   ├── web_routes.py       # Web interface routes
+│   ├── report_routes.py    # Report API routes
+│   └── health_routes.py    # Health check routes
 ├── services/               # Service modules
 │   ├── __init__.py         # Package initialization
+│   ├── report_service.py   # Report service (core business logic)
 │   ├── gemini_service.py   # Gemini AI integration
 │   ├── notion_service.py   # Notion API integration
-│   └── storage_service.py  # Google Cloud Storage integration
+│   ├── storage_service.py  # Google Cloud Storage integration
+│   ├── file_service.py     # File handling service
+│   ├── format_validator_service.py # Format validation service
+│   ├── interfaces.py       # Interface definitions
+│   └── platforms/          # Output platform implementations
+│       ├── gcs_platform.py     # Google Cloud Storage platform
+│       └── notion_platform.py  # Notion platform
+├── utils/                  # Utility functions
+│   ├── common/             # Common utilities
+│   ├── markdown/           # Markdown processing tools
+│   ├── storage/            # Storage utilities
+│   └── notion/             # Notion utilities
 ├── static/                 # Static files
 │   ├── css/                # CSS stylesheets
-│   │   └── styles.css      # Main stylesheet
 │   ├── js/                 # JavaScript files
-│   │   └── main.js         # Main JavaScript file
 │   ├── img/                # Image assets
-│   │   └── notion-logo.png # Notion logo
-│   ├── uploads/            # Uploaded images (not in repo)
-│   └── favicon.ico         # Favicon
-└── templates/              # Jinja2 templates
-    ├── index.html          # Home page template
-    ├── success.html        # Success page template
-    └── error.html          # Error page template
+│   └── uploads/            # Uploaded images (not in repo)
+├── templates/              # Jinja2 templates
+│   ├── index.html          # Home page template
+│   ├── edit.html           # Edit page template
+│   ├── success.html        # Success page template
+│   ├── error.html          # Error page template
+│   └── reports/            # Report templates
+│       └── report_template.html # Report HTML template
+└── temp/                   # Temporary files directory (not in repo)
 ```
 
 ## Installation and Setup
@@ -54,9 +77,9 @@ class-report/
 ### Prerequisites
 
 - Python 3.9+
-- Notion API key
+- Notion API key (if using Notion)
 - Gemini API key
-- Notion database ID (for creating new pages)
+- Notion database ID (for creating new pages, if using Notion)
 - Google Cloud Storage bucket
 - Google Cloud Service Account credentials
 
@@ -100,35 +123,32 @@ The application will run at `http://localhost:8000`.
 3. Enter classroom notes and activities in the text area
 4. Click "Generate Report"
 5. You'll be redirected to a success page with:
-   - A link to your new Notion report
+   - A link to your new report
    - A preview of the generated report content
    - The uploaded images
 
-### API Usage
+### Editing Reports
 
-If you prefer to use the API directly:
+1. In the report list on the home page, click the "Edit" button
+2. Modify the report title and content
+3. Click "Update Report"
+4. The report will be updated, and you'll be redirected to the home page
 
-**Endpoint**: `POST /generate-report`
+### Deleting Reports
 
-**Request Body**:
+1. In the report list on the home page, click the "Delete" button
+2. The report will be deleted, and you'll be redirected to the home page
 
-```json
-{
-  "content": ["Classroom notes and activities"],
-  "image_paths": ["/path/to/image1.jpg", "/path/to/image2.jpg"]
-}
-```
+## Architecture Design
 
-**Response**:
+This project adopts a layered architecture design, following the principle of separation of concerns:
 
-```json
-{
-  "success": true,
-  "report_id": "unique-report-id",
-  "notion_page_id": "notion-page-id",
-  "notion_page_url": "https://notion.so/page-id"
-}
-```
+1. **Routes Layer**: Handles HTTP requests and responses, contains no business logic
+2. **Services Layer**: Contains all business logic, implements core functionality
+3. **Platforms Layer**: Provides implementations for different output platforms (GCS, Notion)
+4. **Utils Layer**: Provides common utility functions and auxiliary features
+
+This architecture design makes the code more modular, easier to maintain and test. The methods in the service layer can be reused by other parts of the code, not just the route handling functions.
 
 ## Deployment to Google Cloud Run
 
@@ -232,7 +252,7 @@ The Storage Service is optional. If you don't set the GCS environment variables,
 When you upload an image, the application will:
 1. Save the image temporarily to the local filesystem in the `temp` directory
 2. Upload the image to the GCS bucket and get a public URL
-3. Use the image URL in the Notion page
+3. Use the image URL in the report page
 4. Delete the temporary local file after it's been uploaded to GCS
 
 This ensures that images are stored in Google Cloud Storage and not on the local system, which is more suitable for production environments and provides better durability and availability.
