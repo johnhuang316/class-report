@@ -7,6 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 from services.interfaces import OutputPlatformInterface
 from utils.common.logging_utils import get_logger
 from datetime import datetime
+import re
 
 logger = get_logger("gcs_platform")
 
@@ -30,6 +31,16 @@ class GCSPlatform(OutputPlatformInterface):
         try:
             # 合併內容並轉換
             markdown_text = "\n\n".join(content)
+            
+            # 處理 YouTube 連結，將其轉換為嵌入式影片
+            # 匹配 [text](https://www.youtube.com/watch?v=VIDEO_ID) 或 [text](https://youtu.be/VIDEO_ID)
+            youtube_pattern1 = r'\[([^\]]+)\]\((https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/shorts/))([a-zA-Z0-9_-]+)(?:[^\)]*?)\)'
+            markdown_text = re.sub(youtube_pattern1, r'<div class="video-container"><iframe width="560" height="315" src="https://www.youtube.com/embed/\3" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>', markdown_text)
+            
+            # 匹配純 URL: https://www.youtube.com/watch?v=VIDEO_ID 或 https://youtu.be/VIDEO_ID 或 https://www.youtube.com/shorts/VIDEO_ID
+            youtube_pattern2 = r'(?<!\]\()(?<!\])\b(https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/shorts/))([a-zA-Z0-9_-]+)(?:[^\s]*?)\b'
+            markdown_text = re.sub(youtube_pattern2, r'<div class="video-container"><iframe width="560" height="315" src="https://www.youtube.com/embed/\2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>', markdown_text)
+            
             html_content = self.markdown.convert(markdown_text)
             
             # 處理圖片標籤，確保圖片有響應式樣式
@@ -37,6 +48,27 @@ class GCSPlatform(OutputPlatformInterface):
             
             # 處理連結標籤，確保在新頁簽中打開
             html_content = html_content.replace('<a href', '<a target="_blank" rel="noopener noreferrer" href')
+            
+            # 添加 CSS 樣式以確保影片容器響應式
+            html_content = html_content + """
+            <style>
+            .video-container {
+                position: relative;
+                padding-bottom: 56.25%; /* 16:9 比例 */
+                height: 0;
+                overflow: hidden;
+                max-width: 100%;
+                margin: 20px 0;
+            }
+            .video-container iframe {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+            </style>
+            """
             
             return html_content
         except Exception as e:

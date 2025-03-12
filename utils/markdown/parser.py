@@ -58,8 +58,8 @@ class MarkdownParser:
         'italic': r'(?<!\*)\*((?:[^*]|\*(?!\*))*)\*(?!\*)',
         'url': r'((?:https?://[^\s<>"]+)|(?:www\.[^\s<>"]+))',
         'youtube': [
-            r'^\s*\[(.*?)\]\((https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]+)(?:[^\)]*?))\)\s*$',
-            r'^\s*https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]+)(?:[^\s]*?)\s*$'
+            r'^\s*\[(.*?)\]\((https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/shorts/))([a-zA-Z0-9_-]+)(?:[^\)]*?))\)\s*$',
+            r'^\s*https?://(?:www\.)?(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/shorts/)([a-zA-Z0-9_-]+)(?:[^\s]*?)\s*$'
         ],
         'heading': r'^(#{1,6})(?:\s+|\s*(?=[^\s#]))(.*?)(?:\s+#*)?$',
         'numbered_list': r'^(\s*)(\d+)\.[\s]+(.*)',
@@ -253,13 +253,62 @@ class MarkdownParser:
         self.code_block_content = []
         self.code_language = ""
         
+        # 預處理：檢查並提取所有獨立行的 YouTube 連結
+        youtube_lines = []
+        processed_content = []
+        
+        for line in content:
+            line = line.rstrip()
+            youtube_match1 = re.match(self.PATTERNS['youtube'][0], line)
+            youtube_match2 = re.match(self.PATTERNS['youtube'][1], line)
+            
+            if youtube_match1 or youtube_match2:
+                youtube_lines.append(line)
+                # 添加一個空行作為佔位符，以保持行號一致
+                processed_content.append("")
+            else:
+                processed_content.append(line)
+        
         i = 0
-        while i < len(content):
-            line = content[i].rstrip()
+        while i < len(processed_content):
+            line = processed_content[i].rstrip()
             
             # Skip empty lines
             if not line:
                 self._flush_current_text()
+                
+                # 檢查這是否是 YouTube 連結的佔位符
+                if i < len(content) and (
+                    re.match(self.PATTERNS['youtube'][0], content[i].rstrip()) or 
+                    re.match(self.PATTERNS['youtube'][1], content[i].rstrip())
+                ):
+                    original_line = content[i].rstrip()
+                    youtube_match1 = re.match(self.PATTERNS['youtube'][0], original_line)
+                    youtube_match2 = re.match(self.PATTERNS['youtube'][1], original_line)
+                    
+                    if youtube_match1:
+                        text, url, video_id = youtube_match1.groups()
+                        self.blocks.append(Block(
+                            type=BlockType.VIDEO,
+                            content={
+                                "type": "external",
+                                "external": {
+                                    "url": f"https://www.youtube.com/watch?v={video_id}"
+                                }
+                            }
+                        ))
+                    elif youtube_match2:
+                        video_id = youtube_match2.group(1)
+                        self.blocks.append(Block(
+                            type=BlockType.VIDEO,
+                            content={
+                                "type": "external",
+                                "external": {
+                                    "url": f"https://www.youtube.com/watch?v={video_id}"
+                                }
+                            }
+                        ))
+                
                 i += 1
                 continue
             
