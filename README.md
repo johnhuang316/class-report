@@ -276,10 +276,10 @@ The application includes comprehensive logging to help diagnose issues:
 
 The application is configured with the following Cloud Run settings:
 
-- Memory: 512Mi
+- Memory: 256Mi
 - CPU: 1
 - Concurrency: 80 (maximum concurrent requests per instance)
-- Max instances: 10 (to control costs)
+- Max instances: 3 (to control costs)
 - Min instances: 0 (scales to zero when not in use)
 
 Adjust these settings in the deployment scripts or Cloud Run console based on your usage patterns.
