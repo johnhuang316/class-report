@@ -273,9 +273,15 @@ async def edit_report_form(
             else:
                 # 如果找不到原始 Markdown，則報錯
                 raise Exception("Original Markdown content not found in the report")
+            
+            # 提取報告標題
+            title_element = soup.find('h1')
+            report_title = title_element.text if title_element else "主日學報告"
+            # 移除 HTML 標籤，但保留換行符號以便在表單中顯示
+            report_title = report_title.replace('<br>', '\n').replace('</br>', '')
                 
         except Exception as e:
-            logger.error(f"Error extracting Markdown content: {str(e)}")
+            logger.error(f"Error extracting content: {str(e)}")
             raise
         
         # 返回編輯表單
@@ -285,7 +291,8 @@ async def edit_report_form(
                 "request": request,
                 "report_path": report_path,
                 "report_date": report_date,
-                "markdown_content": markdown_content
+                "markdown_content": markdown_content,
+                "report_title": report_title
             }
         )
         
@@ -306,6 +313,7 @@ async def edit_report_form(
 async def update_report(
     request: Request,
     report_path: str,
+    title: str = Form(...),
     content: str = Form(...),
     report_service: Optional[ReportService] = Depends(get_report_service)
 ):
@@ -315,6 +323,7 @@ async def update_report(
     Args:
         request: 請求對象
         report_path: 報告文件的路徑
+        title: 更新後的報告標題
         content: 更新後的報告內容 (Markdown 格式)
         report_service: 報告服務實例
         
@@ -357,9 +366,8 @@ async def update_report(
         # 使用 BeautifulSoup 解析原始 HTML
         soup = BeautifulSoup(original_html, 'html.parser')
         
-        # 獲取報告標題
-        title_element = soup.find('h1')
-        title = title_element.text if title_element else "主日學報告"
+        # 處理標題中的換行符，將其轉換為 <br> 標籤
+        title = title.replace('\n', '<br>')
         
         # 從原始 HTML 中獲取之前的 original_content
         original_content_container = soup.find('div', class_='original-content')
