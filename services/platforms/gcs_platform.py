@@ -35,6 +35,9 @@ class GCSPlatform(OutputPlatformInterface):
             # 處理圖片標籤，確保圖片有響應式樣式
             html_content = html_content.replace('<img ', '<img style="max-width:100%; height:auto; display:block; margin:0 auto;" ')
             
+            # 處理連結標籤，確保在新頁簽中打開
+            html_content = html_content.replace('<a href', '<a target="_blank" rel="noopener noreferrer" href')
+            
             return html_content
         except Exception as e:
             logger.error(f"Markdown 轉換失敗: {str(e)}")
