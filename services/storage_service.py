@@ -139,6 +139,9 @@ class StorageService:
             bucket = self.client.bucket(self.bucket_name)
             blob = bucket.blob(blob_name)
             
+            # Set cache control
+            blob.cache_control = "no-cache, max-age=0"
+            logger.info(f"HTML content: {html_content}")
             # Upload content with explicit content type
             blob.upload_from_string(
                 data=html_content,

@@ -12,6 +12,7 @@ from utils.common.logging_utils import get_logger
 from dependencies import get_report_service, get_file_service
 from services.report_service import ReportService
 from services.file_service import FileService
+from services.platforms.gcs_platform import GCSPlatform
 
 # 配置日誌
 logger = get_logger("web_routes")
@@ -334,51 +335,68 @@ async def update_report(
             status_code=503
         )
     
+    # 檢查是否為 GCSPlatform
+    if not isinstance(report_service.output_platform, GCSPlatform):
+        error_message = "不支援的平台類型，目前只支援 GCS 平台的報告修改"
+        return templates.TemplateResponse(
+            "error.html",
+            {
+                "request": request,
+                "error_message": error_message
+            },
+            status_code=400
+        )
+    
     try:
-        # 獲取原始 HTML 內容作為模板
+        # 獲取原始 HTML 內容
         original_html = report_service.output_platform.storage_service.get_report_content(report_path)
         
         if not original_html:
             raise Exception("Failed to get original report content")
         
-        # 將 Markdown 轉換為 HTML
-        # 使用 Python-Markdown 將 Markdown 轉換為 HTML
-        html_content = markdown.markdown(content, extensions=['extra', 'nl2br'])
-        
         # 使用 BeautifulSoup 解析原始 HTML
         soup = BeautifulSoup(original_html, 'html.parser')
         
-        # 找到主要內容區域
-        main_content = soup.find('div', class_='content')
+        # 獲取報告標題
+        title_element = soup.find('h1')
+        title = title_element.text if title_element else "主日學報告"
         
-        if not main_content:
-            raise Exception("Content area not found in the report")
-            
-        # 替換主要內容區域
-        main_content.clear()
-        new_content = BeautifulSoup(html_content, 'html.parser')
-        main_content.append(new_content)
+        # 從原始 HTML 中獲取之前的 original_content
+        original_content_container = soup.find('div', class_='original-content')
+        original_content = original_content_container.text.strip() if original_content_container else None
         
-        # 更新原始 Markdown 內容
-        markdown_element = soup.find('div', id='original-markdown')
+        # 將 Markdown 內容轉換為段落列表
+        content_paragraphs = content.split('\n\n')
+        logger.info(f"Original content: {content_paragraphs}")
         
-        if not markdown_element:
-            raise Exception("Original Markdown element not found in the report")
-            
-        # 更新 Markdown 內容
-        markdown_element['data-content'] = content.replace('"', '&quot;')
+        logger.info("Using GCSPlatform for update")
+        # 獲取圖片區域
+        image_gallery = soup.find('div', class_='image-gallery')
+        image_paths = []
         
-        # 更新報告內容
-        storage_service = report_service.output_platform.storage_service
+        if image_gallery:
+            # 提取圖片路徑
+            img_tags = image_gallery.find_all('img')
+            image_paths = [img.get('src') for img in img_tags if img.get('src')]
+            logger.info(f"Found {len(image_paths)} images in the report")
         
-        # 獲取文件名
+        # 使用與創建報告時相同的方法生成 HTML 內容
+        new_html_content = report_service.output_platform._generate_html_content(
+            title, 
+            content_paragraphs,
+            image_paths,
+            original_content 
+        )
+        
+        # 使用原始文件名（不包含 .html 擴展名）
         filename = report_path.split("/")[-1].replace(".html", "")
+        logger.info(f"Updating report with filename: {filename}")
         
-        # 上傳更新後的內容
-        url = storage_service.upload_html(str(soup), filename)
+        # 上傳更新後的 HTML 內容
+        url = report_service.output_platform.storage_service.upload_html(new_html_content, filename)
         
         if not url:
-            raise Exception("Failed to update report")
+            raise Exception("Failed to upload updated HTML content")
         
         logger.info(f"Successfully updated report: {report_path}")
         

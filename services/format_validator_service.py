@@ -41,6 +41,21 @@ class FormatValidatorService:
         logger.info("Validating Notion format compatibility")
         logger.info(f"Input content length: {len(content)} characters")
         
+        # 檢查並修復整個內容被代碼塊包圍的問題
+        if content.startswith('```') and content.endswith('```'):
+            logger.info("Content is wrapped in code block, removing code block markers")
+            content = content[3:-3].strip()
+        
+        # 檢查是否有多餘的代碼塊標記
+        lines = content.split('\n')
+        code_block_starts = [i for i, line in enumerate(lines) if line.strip() == '```']
+        if len(code_block_starts) % 2 != 0:
+            logger.info("Unbalanced code block markers found, fixing...")
+            # 如果有奇數個代碼塊標記，移除最後一個
+            if code_block_starts:
+                lines.pop(code_block_starts[-1])
+                content = '\n'.join(lines)
+        
         # Create prompt for Gemini
         prompt = f"""
         You are a Markdown format expert. Your task is to check if the following Markdown content is compatible with Notion and fix any compatibility issues.
@@ -56,8 +71,11 @@ class FormatValidatorService:
         1. Tables are not supported
         2. Complex nested lists are not supported
         3. HTML tags are not supported
+        4. Code blocks with triple backticks (```) are not supported well
         
         IMPORTANT: DO NOT modify or remove any emojis in the content. All emojis should be preserved exactly as they appear in the original text.
+        
+        IMPORTANT: DO NOT wrap the entire content in code blocks (```). If you see the entire content wrapped in code blocks, remove the code block markers.
         
         Please check the following content and fix any compatibility issues. Maintain the original meaning and structure, only modify formatting issues:
         
@@ -82,6 +100,11 @@ class FormatValidatorService:
             if not fixed_content:
                 logger.error("Validation result is empty")
                 return False, content
+            
+            # 再次檢查並修復整個內容被代碼塊包圍的問題
+            if fixed_content.startswith('```') and fixed_content.endswith('```'):
+                logger.info("Fixed content is still wrapped in code block, removing code block markers")
+                fixed_content = fixed_content[3:-3].strip()
             
             # Check if content was modified
             is_modified = fixed_content != content

@@ -41,6 +41,7 @@ class GCSPlatform(OutputPlatformInterface):
         """生成 HTML 內容"""
         # 轉換 Markdown 內容為 HTML
         content_html = self._convert_markdown_to_html(content)
+        logger.info(f"Content HTML: {content_html}")
         
         # 保存原始 Markdown 內容，用於編輯
         original_markdown = "\n\n".join(content)

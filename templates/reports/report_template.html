@@ -207,6 +207,26 @@
         .close-btn:hover {
             color: #ff6b6b;
         }
+        .copy-btn {
+            background-color: #4ecdc4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .copy-btn:hover {
+            background-color: #3dbcb3;
+            transform: translateY(-1px);
+        }
+        .copy-btn.copied {
+            background-color: #45b19f;
+        }
         .original-content {
             padding: 20px;
             overflow-y: auto;
@@ -216,6 +236,10 @@
             font-family: monospace;
             background-color: #f8f9fa;
             border-radius: 0 0 15px 15px;
+            tab-size: 4;
+            -moz-tab-size: 4;
+            user-select: all;
+            cursor: text;
         }
         .overlay {
             position: fixed;
@@ -259,10 +283,15 @@
     <div id="original-content-container" class="original-content-container" style="display: none;">
         <div class="original-content-header">
             <h2>📝 原始輸入內容</h2>
-            <button onclick="hideOriginalContent()" class="close-btn">✖</button>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button onclick="copyContent()" class="copy-btn" id="copyBtn">
+                    <span>📋</span> 複製內容
+                </button>
+                <button onclick="hideOriginalContent()" class="close-btn">✖</button>
+            </div>
         </div>
         <div class="original-content">
-            {{ original_content|e|nl2br|safe }}
+            {{ original_content|e|safe }}
         </div>
     </div>
     {% endif %}
@@ -281,13 +310,23 @@
         </div>
         
         <div class="content">
-            {{ content_html|safe }}
+            {% if content_html %}
+                {{ content_html | safe }}
+            {% else %}
+                <p style="color: red; text-align: center; padding: 20px;">
+                    內容渲染失敗，請聯繫管理員。
+                </p>
+                <!-- 調試信息 -->
+                <div style="display: none;" id="debug-info">
+                    <pre>{{ content_html }}</pre>
+                </div>
+            {% endif %}
         </div>
         
         {% if images_html %}
         <div class="image-gallery">
             <h2>📸 今日活動花絮 ✨</h2>
-            {{ images_html|safe }}
+            {{ images_html | safe }}
         </div>
         {% endif %}
         
@@ -300,7 +339,7 @@
         </div>
         
         <!-- 原始 Markdown 內容，用於編輯 -->
-        <div class="original-markdown" id="original-markdown" data-content="{{ original_markdown|e }}"></div>
+        <div id="original-markdown" class="original-markdown" data-content="{{ original_markdown }}"></div>
     </div>
     
     <script>
@@ -314,6 +353,24 @@
             document.getElementById('overlay').style.display = 'none';
             document.getElementById('original-content-container').style.display = 'none';
             document.body.style.overflow = 'auto';
+        }
+
+        function copyContent() {
+            const content = document.querySelector('.original-content').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                const copyBtn = document.getElementById('copyBtn');
+                copyBtn.innerHTML = '<span>✅</span> 已複製';
+                copyBtn.classList.add('copied');
+                
+                // 2秒後恢復原狀
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<span>📋</span> 複製內容';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('複製失敗:', err);
+                alert('複製失敗，請手動複製');
+            });
         }
     </script>
 </body>
