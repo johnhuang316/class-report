@@ -87,6 +87,72 @@
         .editor-preview {
             background-color: #fff;
         }
+        
+        /* Markdown 說明樣式 */
+        .markdown-guide {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .markdown-guide h3 {
+            margin-top: 0;
+            color: #4dabf7;
+            font-size: 1.2em;
+        }
+        
+        .markdown-guide-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+        
+        .markdown-guide-table td {
+            padding: 6px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .markdown-guide-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .markdown-guide code {
+            background-color: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        .markdown-guide-toggle {
+            color: #4dabf7;
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 0.9em;
+            cursor: pointer;
+            display: block;
+            margin: 0 0 10px auto;
+            text-decoration: underline;
+        }
+        
+        .show-guide-btn {
+            color: #4dabf7;
+            background: none;
+            border: 1px solid #4dabf7;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-size: 0.9em;
+            cursor: pointer;
+            display: none;
+            margin: 15px 0;
+            transition: all 0.2s ease;
+        }
+        
+        .show-guide-btn:hover {
+            background-color: #e7f5ff;
+        }
     </style>
 </head>
 <body>
@@ -102,6 +168,63 @@
                     <label for="content">Markdown 內容：</label>
                     <textarea id="content" name="content" class="form-control">{{ markdown_content }}</textarea>
                     <small class="hint">使用 Markdown 格式編輯內容，支持標題、列表、粗體、斜體等格式</small>
+                </div>
+                
+                <!-- 顯示說明按鈕 -->
+                <button type="button" class="show-guide-btn" id="showGuideBtn">
+                    <span>📝</span> 顯示 Markdown 語法說明
+                </button>
+                
+                <!-- Markdown 說明區域 -->
+                <div class="markdown-guide" id="markdownGuide">
+                    <button type="button" class="markdown-guide-toggle" id="hideGuideBtn">隱藏說明</button>
+                    <h3>📝 Markdown 語法指南</h3>
+                    <table class="markdown-guide-table">
+                        <tr>
+                            <td width="40%"><code># 標題</code></td>
+                            <td>大標題 (H1)</td>
+                        </tr>
+                        <tr>
+                            <td><code>## 標題</code></td>
+                            <td>中標題 (H2)</td>
+                        </tr>
+                        <tr>
+                            <td><code>### 標題</code></td>
+                            <td>小標題 (H3)</td>
+                        </tr>
+                        <tr>
+                            <td><code>**粗體文字**</code></td>
+                            <td>粗體文字</td>
+                        </tr>
+                        <tr>
+                            <td><code>*斜體文字*</code></td>
+                            <td>斜體文字</td>
+                        </tr>
+                        <tr>
+                            <td><code>- 項目</code> 或 <code>* 項目</code></td>
+                            <td>無序列表項目</td>
+                        </tr>
+                        <tr>
+                            <td><code>1. 項目</code></td>
+                            <td>有序列表項目</td>
+                        </tr>
+                        <tr>
+                            <td><code>> 引用文字</code></td>
+                            <td>引用區塊</td>
+                        </tr>
+                        <tr>
+                            <td><code>[連結文字](網址)</code></td>
+                            <td>超連結</td>
+                        </tr>
+                        <tr>
+                            <td><code>---</code></td>
+                            <td>水平分隔線</td>
+                        </tr>
+                        <tr>
+                            <td><code>🎵 🙏 💖</code></td>
+                            <td>可直接使用表情符號</td>
+                        </tr>
+                    </table>
                 </div>
                 
                 <div class="button-group">
@@ -133,6 +256,40 @@
             ],
             placeholder: "在此輸入 Markdown 格式的內容...",
             status: ["autosave", "lines", "words", "cursor"]
+        });
+        
+        // Markdown 說明顯示/隱藏功能
+        document.getElementById('hideGuideBtn').addEventListener('click', function() {
+            var guide = document.getElementById('markdownGuide');
+            var btn = document.getElementById('hideGuideBtn');
+            var showBtn = document.getElementById('showGuideBtn');
+            
+            guide.style.display = 'none';
+            showBtn.style.display = 'block';
+            localStorage.setItem('markdownGuideHidden', 'true');
+        });
+        
+        document.getElementById('showGuideBtn').addEventListener('click', function() {
+            var guide = document.getElementById('markdownGuide');
+            var showBtn = document.getElementById('showGuideBtn');
+            
+            guide.style.display = 'block';
+            showBtn.style.display = 'none';
+            localStorage.setItem('markdownGuideHidden', 'false');
+        });
+        
+        // 檢查用戶之前的偏好設置
+        document.addEventListener('DOMContentLoaded', function() {
+            var guide = document.getElementById('markdownGuide');
+            var showBtn = document.getElementById('showGuideBtn');
+            
+            if (localStorage.getItem('markdownGuideHidden') === 'true') {
+                guide.style.display = 'none';
+                showBtn.style.display = 'block';
+            } else {
+                guide.style.display = 'block';
+                showBtn.style.display = 'none';
+            }
         });
     </script>
 </body>
