@@ -27,9 +27,19 @@ class GCSPlatform(OutputPlatformInterface):
     
     def _convert_markdown_to_html(self, content: List[str]) -> str:
         """將 Markdown 內容轉換為 HTML"""
-        # 合併內容並轉換
-        markdown_text = "\n\n".join(content)
-        return self.markdown.convert(markdown_text)
+        try:
+            # 合併內容並轉換
+            markdown_text = "\n\n".join(content)
+            html_content = self.markdown.convert(markdown_text)
+            
+            # 處理圖片標籤，確保圖片有響應式樣式
+            html_content = html_content.replace('<img ', '<img style="max-width:100%; height:auto; display:block; margin:0 auto;" ')
+            
+            return html_content
+        except Exception as e:
+            logger.error(f"Markdown 轉換失敗: {str(e)}")
+            # 返回簡單的 HTML 格式化，作為備用方案
+            return "<p>" + "</p><p>".join([p.replace('\n', '<br>') for p in content]) + "</p>"
     
     def _generate_html_content(
         self,
@@ -52,7 +62,7 @@ class GCSPlatform(OutputPlatformInterface):
         images_html = ""
         if image_paths:
             images_html = "\n".join([
-                f'<figure><img src="{img}" alt="主日學活動照片" loading="lazy"></figure>'
+                f'<figure><img src="{img}" alt="主日學活動照片" loading="lazy" onerror="this.onerror=null; this.src=\'data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 200%22%3E%3Crect width=%22300%22 height=%22200%22 fill=%22%23cccccc%22%3E%3C/rect%3E%3Ctext x=%22150%22 y=%22100%22 fill=%22%23ffffff%22 font-size=%2220%22 text-anchor=%22middle%22 alignment-baseline=%22middle%22%3E圖片載入失敗%3C/text%3E%3C/svg%3E\'"></figure>'
                 for img in image_paths if img
             ])
         

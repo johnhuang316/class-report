@@ -52,6 +52,7 @@
             border-radius: 20px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             border: 3px dashed #ff9f1c;
+            overflow: hidden;
         }
         .image-gallery h2 {
             color: #ff9f1c;
@@ -78,6 +79,10 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             margin-bottom: 15px;
             border: 5px solid white;
+            object-fit: contain;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
         .image-gallery figcaption {
             color: #666;
@@ -251,6 +256,14 @@
             z-index: 999;
             display: none;
         }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
         @media (max-width: 600px) {
             body {
                 padding: 10px;
@@ -272,6 +285,14 @@
             }
             .original-content-container {
                 width: 95%;
+            }
+            .image-gallery figure {
+                margin: 10px 0;
+                padding: 10px;
+            }
+            .image-gallery img {
+                max-width: 100%;
+                border-width: 3px;
             }
         }
     </style>

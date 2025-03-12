@@ -56,6 +56,13 @@ class FormatValidatorService:
                 lines.pop(code_block_starts[-1])
                 content = '\n'.join(lines)
         
+        # 檢查並修復 Markdown 圖片語法
+        img_pattern = r'!\[(.*?)\]\((.*?)\)'
+        if re.search(img_pattern, content):
+            logger.info("Found Markdown image syntax, ensuring proper formatting")
+            # 確保圖片鏈接有正確的格式
+            content = re.sub(img_pattern, r'![\1](\2)', content)
+        
         # Create prompt for Gemini
         prompt = f"""
         You are a Markdown format expert. Your task is to check if the following Markdown content is compatible with Notion and fix any compatibility issues.
@@ -66,6 +73,7 @@ class FormatValidatorService:
         3. Quotes: > quoted text
         4. Bullet lists: - item or • item
         5. Dividers: ---
+        6. Images: ![alt text](image_url) - ensure images have proper syntax
         
         Here are formats NOT supported or with limited support in Notion:
         1. Tables are not supported
@@ -76,6 +84,8 @@ class FormatValidatorService:
         IMPORTANT: DO NOT modify or remove any emojis in the content. All emojis should be preserved exactly as they appear in the original text.
         
         IMPORTANT: DO NOT wrap the entire content in code blocks (```). If you see the entire content wrapped in code blocks, remove the code block markers.
+        
+        IMPORTANT: For images, ensure they have proper Markdown syntax and are on their own line for better rendering.
         
         Please check the following content and fix any compatibility issues. Maintain the original meaning and structure, only modify formatting issues:
         
