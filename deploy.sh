@@ -24,6 +24,7 @@ required_vars=(
     "NOTION_DATABASE_ID"
     "GEMINI_API_KEY"
     "GCS_BUCKET_NAME"
+    "OUTPUT_PLATFORM"
 )
 
 # Previously hardcoded variables that are now required
@@ -62,7 +63,7 @@ gcloud run deploy ${SERVICE_NAME} \
     --platform managed \
     --region ${REGION} \
     --allow-unauthenticated \
-    --set-env-vars="NOTION_API_KEY=${NOTION_API_KEY},NOTION_DATABASE_ID=${NOTION_DATABASE_ID},GEMINI_API_KEY=${GEMINI_API_KEY},GCS_BUCKET_NAME=${GCS_BUCKET_NAME}" \
+    --set-env-vars="NOTION_API_KEY=${NOTION_API_KEY},NOTION_DATABASE_ID=${NOTION_DATABASE_ID},GEMINI_API_KEY=${GEMINI_API_KEY},GCS_BUCKET_NAME=${GCS_BUCKET_NAME},OUTPUT_PLATFORM=${OUTPUT_PLATFORM}" \
     --memory 256Mi \
     --cpu 1 \
     --concurrency 80 \
