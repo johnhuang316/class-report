@@ -58,7 +58,6 @@ class NotionBlockBuilder:
         
         # Process content with better section formatting
         if "content" in report_content and report_content["content"]:
-            logger.info(f"Processing content: {report_content['content']}") 
             from utils.markdown.parser import MarkdownParser
             markdown_parser = MarkdownParser()
             content_blocks = markdown_parser.process_content(report_content["content"])

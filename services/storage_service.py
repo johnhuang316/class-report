@@ -141,7 +141,6 @@ class StorageService:
             
             # Set cache control
             blob.cache_control = "no-cache, max-age=0"
-            logger.info(f"HTML content: {html_content}")
             # Upload content with explicit content type
             blob.upload_from_string(
                 data=html_content,
@@ -192,9 +191,7 @@ class StorageService:
             
             # Sort the list of files by date (newest first)
             html_files.sort(key=lambda x: x['date'], reverse=True)
-            
-            logger.info(f"Found HTML files: {html_files}")
-            
+                        
             return html_files
             
         except Exception as e:

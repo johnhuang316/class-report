@@ -40,9 +40,9 @@ async def root(
     """
     # 獲取已生成的報告列表
     reports = []
-    if report_service and hasattr(report_service.output_platform, 'storage_service'):
+    if report_service:
         try:
-            reports = report_service.output_platform.storage_service.list_reports()
+            reports = report_service.list_reports()
         except Exception as e:
             logger.error(f"Failed to list reports: {str(e)}")
     
@@ -179,7 +179,7 @@ async def delete_report(
     logger.info(f"Deleting report: {report_path}")
     
     # 檢查服務是否可用
-    if not report_service or not hasattr(report_service.output_platform, 'storage_service'):
+    if not report_service:
         error_message = "Required services are not available"
         return templates.TemplateResponse(
             "error.html",
@@ -191,10 +191,10 @@ async def delete_report(
         )
     
     try:
-        # 刪除報告
-        success = report_service.output_platform.storage_service.delete_report(report_path)
+        # 使用 report_service 刪除報告
+        result = report_service.delete_report(report_path)
         
-        if not success:
+        if not result["success"]:
             raise Exception("Failed to delete report")
         
         logger.info(f"Successfully deleted report: {report_path}")
@@ -235,7 +235,7 @@ async def edit_report_form(
     logger.info(f"Editing report: {report_path}")
     
     # 檢查服務是否可用
-    if not report_service or not hasattr(report_service.output_platform, 'storage_service'):
+    if not report_service:
         error_message = "Required services are not available"
         return templates.TemplateResponse(
             "error.html",
@@ -247,52 +247,15 @@ async def edit_report_form(
         )
     
     try:
-        # 獲取報告內容
-        html_content = report_service.output_platform.storage_service.get_report_content(report_path)
-        
-        if not html_content:
-            raise Exception("Failed to get report content")
-        
-        # 從文件名中提取報告日期
-        # 假設文件名格式為 "YYYY年MM月DD日.html"
-        filename = report_path.split("/")[-1]
-        report_date = filename.replace(".html", "")
-        
-        # 從 HTML 中提取原始 Markdown 內容
-        try:
-            # 使用 BeautifulSoup 解析 HTML
-            soup = BeautifulSoup(html_content, 'html.parser')
-            
-            # 查找包含原始 Markdown 的元素
-            markdown_element = soup.find('div', id='original-markdown')
-            
-            if markdown_element and markdown_element.get('data-content'):
-                # 從 data-content 屬性中獲取 Markdown 內容
-                markdown_content = markdown_element['data-content']
-                logger.info("Successfully extracted original Markdown content")
-            else:
-                # 如果找不到原始 Markdown，則報錯
-                raise Exception("Original Markdown content not found in the report")
-            
-            # 提取報告標題
-            title_element = soup.find('h1')
-            report_title = title_element.text if title_element else "主日學報告"
-            # 移除 HTML 標籤，但保留換行符號以便在表單中顯示
-            report_title = report_title.replace('<br>', '\n').replace('</br>', '')
-                
-        except Exception as e:
-            logger.error(f"Error extracting content: {str(e)}")
-            raise
+        # 使用 report_service 獲取報告編輯信息
+        report_data = report_service.get_report_for_editing(report_path)
         
         # 返回編輯表單
         return templates.TemplateResponse(
             "edit.html",
             {
                 "request": request,
-                "report_path": report_path,
-                "report_date": report_date,
-                "markdown_content": markdown_content,
-                "report_title": report_title
+                **report_data  # 展開報告數據
             }
         )
         
@@ -333,7 +296,7 @@ async def update_report(
     logger.info(f"Updating report: {report_path}")
     
     # 檢查服務是否可用
-    if not report_service or not hasattr(report_service.output_platform, 'storage_service'):
+    if not report_service:
         error_message = "Required services are not available"
         return templates.TemplateResponse(
             "error.html",
@@ -357,56 +320,11 @@ async def update_report(
         )
     
     try:
-        # 獲取原始 HTML 內容
-        original_html = report_service.output_platform.storage_service.get_report_content(report_path)
+        # 使用 report_service 更新報告
+        result = report_service.update_report(report_path, title, content)
         
-        if not original_html:
-            raise Exception("Failed to get original report content")
-        
-        # 使用 BeautifulSoup 解析原始 HTML
-        soup = BeautifulSoup(original_html, 'html.parser')
-        
-        # 處理標題中的換行符，將其轉換為 <br> 標籤
-        title = title.replace('\n', '<br>')
-        
-        # 從原始 HTML 中獲取之前的 original_content
-        original_content_container = soup.find('div', class_='original-content')
-        original_content = original_content_container.text.strip() if original_content_container else None
-        
-        # 將 Markdown 內容轉換為段落列表
-        content_paragraphs = content.split('\n\n')
-        logger.info(f"Original content: {content_paragraphs}")
-        
-        logger.info("Using GCSPlatform for update")
-        # 獲取圖片區域
-        image_gallery = soup.find('div', class_='image-gallery')
-        image_paths = []
-        
-        if image_gallery:
-            # 提取圖片路徑
-            img_tags = image_gallery.find_all('img')
-            image_paths = [img.get('src') for img in img_tags if img.get('src')]
-            logger.info(f"Found {len(image_paths)} images in the report")
-        
-        # 使用與創建報告時相同的方法生成 HTML 內容
-        new_html_content = report_service.output_platform._generate_html_content(
-            title, 
-            content_paragraphs,
-            image_paths,
-            original_content 
-        )
-        
-        # 使用原始文件名（不包含 .html 擴展名）
-        filename = report_path.split("/")[-1].replace(".html", "")
-        logger.info(f"Updating report with filename: {filename}")
-        
-        # 上傳更新後的 HTML 內容
-        url = report_service.output_platform.storage_service.upload_html(new_html_content, filename)
-        
-        if not url:
-            raise Exception("Failed to upload updated HTML content")
-        
-        logger.info(f"Successfully updated report: {report_path}")
+        if not result["success"]:
+            raise Exception("Failed to update report")
         
         # 重定向到主頁面
         return RedirectResponse(url="/", status_code=303)
@@ -414,7 +332,7 @@ async def update_report(
     except Exception as e:
         logger.error(f"Error updating report: {str(e)}")
         
-        error_message = f"更新失敗: {str(e)}"
+        error_message = f"更新報告失敗: {str(e)}"
         return templates.TemplateResponse(
             "error.html",
             {
