@@ -71,3 +71,9 @@ gcloud run deploy ${SERVICE_NAME} \
     --min-instances 0
 
 echo "Deployment complete! Your service will be available at the URL shown above."
+
+# Upload website files to GCS bucket root
+echo "Uploading website files to GCS bucket root..."
+"$SCRIPT_DIR/scripts/upload_website.sh"
+
+echo "Website files uploaded successfully to GCS bucket root"

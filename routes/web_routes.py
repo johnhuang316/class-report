@@ -3,7 +3,7 @@ Web 路由模組 - 處理 Web 界面相關的端點
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Request, Form, UploadFile, HTTPException, status, BackgroundTasks
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 import markdown
 from bs4 import BeautifulSoup
@@ -54,12 +54,54 @@ async def root(
         }
     )
 
+@router.get("/api/reports", response_model=dict)
+async def list_reports(
+    request: Request,
+    report_service: Optional[ReportService] = Depends(get_report_service)
+):
+    """
+    API端點：獲取報告列表
+    
+    Args:
+        request: 請求對象
+        report_service: 報告服務實例
+        
+    Returns:
+        dict: 包含報告列表的字典
+    """
+    # 檢查服務是否可用
+    if not report_service:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Report service is not available"
+        )
+    
+    try:
+        reports = report_service.list_reports()
+        # 確保每個報告都有必要的欄位
+        formatted_reports = []
+        for report in reports:
+            formatted_reports.append({
+                "name": report.get("name", "未命名報告"),
+                "url": report.get("url", "#"),
+                "date": report.get("date", ""),
+                "id": report.get("id", "")
+            })
+        return {"reports": formatted_reports}
+    except Exception as e:
+        logger.error(f"Failed to list reports: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="無法獲取報告列表"
+        )
+
 @router.post("/submit-form", response_class=HTMLResponse)
 async def submit_form(
     request: Request,
     background_tasks: BackgroundTasks,
     report_date: str = Form(...),
     content: str = Form(...),
+    title: str = Form("主日學週報"),
     images: list[UploadFile] = None,
     report_service: Optional[ReportService] = Depends(get_report_service),
     file_service: FileService = Depends(get_file_service)
@@ -72,6 +114,7 @@ async def submit_form(
         background_tasks: 背景任務對象，用於清理臨時文件
         report_date: 報告日期
         content: 報告內容
+        title: 報告標題，默認為"主日學週報"
         images: 上傳的圖片列表
         report_service: 報告服務實例
         file_service: 文件服務實例
@@ -101,7 +144,7 @@ async def submit_form(
     
     # 初始化響應變量
     page_url = ""
-    report_title = report_service.generate_report_title(report_date)
+    report_title = report_service.generate_report_title(report_date, user_title=title)
     report_content = []
     error_message = None
     temp_image_paths = []
@@ -116,7 +159,8 @@ async def submit_form(
         result = report_service.generate_full_report(
             content=content,
             report_date=report_date,
-            image_paths=temp_image_paths
+            image_paths=temp_image_paths,
+            title=title
         )
         
         if not result["success"]:

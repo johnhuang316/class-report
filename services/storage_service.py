@@ -2,7 +2,7 @@ import os
 import logging
 import uuid
 from google.cloud import storage
-from google.oauth2 import service_account
+from config import settings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 # Storage paths configuration
 IMAGES_FOLDER = "images"
 HTML_FOLDER = "reports"
-DEFAULT_FOLDER = "sunday_school_reports"
+DEFAULT_FOLDER = ""
 
 class StorageService:
     def __init__(self, credentials_json=None):
@@ -68,7 +68,9 @@ class StorageService:
         Returns:
             Combined storage path
         """
-        if sub_folder:
+        if not base_folder:
+            return sub_folder if sub_folder else ""
+        elif sub_folder:
             return f"{base_folder}/{sub_folder}"
         return base_folder
     
@@ -105,12 +107,16 @@ class StorageService:
             blob.upload_from_filename(image_path)
             logger.info(f"Image uploaded to GCS: gs://{self.bucket_name}/{blob_name}")
             
-            # Get URL (no need to make public as permissions are controlled by IAM)
-            # Format: https://storage.googleapis.com/BUCKET_NAME/OBJECT_NAME
-            public_url = f"https://storage.googleapis.com/{self.bucket_name}/{blob_name}"
-            logger.info(f"GCS URL: {public_url}")
+            # Generate two URL formats
+            # 1. Complete GCS URL (for logging purposes only)
+            gcs_url = f"https://storage.googleapis.com/{self.bucket_name}/{blob_name}"
+            logger.info(f"GCS URL: {gcs_url}")
             
-            return public_url
+            # 2. Relative URL path (for display in reports)
+            relative_url = f"/{blob_name}"
+            logger.info(f"Relative URL: {relative_url}")
+            
+            return relative_url
             
         except Exception as e:
             logger.error(f"Error uploading image to GCS: {str(e)}")
@@ -149,9 +155,15 @@ class StorageService:
             )
             logger.info(f"HTML uploaded to GCS: gs://{self.bucket_name}/{blob_name}")
             
-            # Get URL
-            public_url = f"https://storage.googleapis.com/{self.bucket_name}/{blob_name}"
-            logger.info(f"GCS URL: {public_url}")
+            # Get URL with domain if available
+            if settings.domain:
+                # Use custom domain
+                public_url = f"https://{settings.domain}/{blob_name}"
+                logger.info(f"Domain URL: {public_url}")
+            else:
+                # Fallback to GCS URL
+                public_url = f"https://storage.googleapis.com/{self.bucket_name}/{blob_name}"
+                logger.info(f"GCS URL: {public_url}")
             
             return public_url
             
@@ -179,15 +191,21 @@ class StorageService:
             blobs = bucket.list_blobs(prefix=prefix)
             
             # Collect properties of HTML files
-            html_files = [
-                {
-                    "name": os.path.basename(blob.name),
-                    "url": f"https://storage.googleapis.com/{self.bucket_name}/{blob.name}",
-                    "date": blob.updated,
-                    "path": blob.name  # 添加完整路徑，用於刪除和編輯操作
-                }
-                for blob in blobs if blob.name.endswith('.html')
-            ]
+            html_files = []
+            for blob in blobs:
+                if blob.name.endswith('.html'):
+                    # Generate URL based on domain availability
+                    if settings.domain:
+                        url = f"https://{settings.domain}/{blob.name}"
+                    else:
+                        url = f"https://storage.googleapis.com/{self.bucket_name}/{blob.name}"
+                    
+                    html_files.append({
+                        "name": os.path.basename(blob.name),
+                        "url": url,
+                        "date": blob.updated,
+                        "path": blob.name  # 添加完整路徑，用於刪除和編輯操作
+                    })
             
             # Sort the list of files by date (newest first)
             html_files.sort(key=lambda x: x['date'], reverse=True)

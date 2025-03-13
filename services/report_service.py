@@ -4,6 +4,7 @@
 import logging
 from typing import List, Tuple, Dict, Any, Optional
 from datetime import datetime
+from config import settings
 import os
 import re
 
@@ -50,18 +51,20 @@ class ReportService:
             # 處理無效日期
             return "未知日期"
     
-    def generate_report_title(self, report_date: str) -> str:
+    def generate_report_title(self, report_date: str, user_title: str = "主日學週報") -> str:
         """
-        根據報告日期生成標準化的報告標題
+        根據報告日期和使用者提供的標題生成標準化的報告標題
         
         Args:
             report_date: 報告日期
+            user_title: 使用者提供的標題，默認為"主日學週報"
             
         Returns:
             生成的報告標題
         """
         formatted_date = self.format_date_for_display(report_date)
-        return f"🌈✨ 幼兒部主日學週報 🧸🎈<br>{formatted_date}"
+        # 使用配置中的模板，填入使用者提供的標題和日期
+        return settings.report_title_template.format(title=user_title, date=formatted_date)
     
     def generate_report_content(self, content: str) -> Tuple[List[str], bool]:
         """
@@ -92,7 +95,7 @@ class ReportService:
         
         return report_content, is_valid
     
-    def generate_full_report(self, content: str, report_date: str, image_paths: List[str] = None) -> Dict[str, Any]:
+    def generate_full_report(self, content: str, report_date: str, image_paths: List[str] = None, title: str = "主日學週報") -> Dict[str, Any]:
         """
         生成完整報告並發布到指定平台
         
@@ -100,6 +103,7 @@ class ReportService:
             content: 原始內容
             report_date: 報告日期
             image_paths: 圖片路徑列表
+            title: 使用者提供的報告標題，默認為"主日學週報"
             
         Returns:
             Dict[str, Any]: 包含報告結果的字典
@@ -130,7 +134,7 @@ class ReportService:
         report_content, is_valid = self.generate_report_content(content)
         
         # 生成標題
-        report_title = self.generate_report_title(report_date)
+        report_title = self.generate_report_title(report_date, user_title=title)
         
         # 發布到指定平台，只使用成功上傳的圖片 URL
         result = self.output_platform.publish_report(

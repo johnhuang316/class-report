@@ -36,11 +36,12 @@ class AppSettings(BaseSettings):
     app_version: str = "1.0.0"
     
     # 報告配置
-    report_title_template: str = "🌈✨ 主日學週報 - {date} 🧸🎈"
+    report_title_template: str = "🌈✨ {title} 🧸🎈<br> {date} "
     
     # 服務器配置
     host: str = "0.0.0.0"
     port: int = 8000
+    domain: Optional[str] = Field(None, env="DOMAIN")
     
     class Config:
         env_file = ".env"

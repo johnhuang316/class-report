@@ -4,6 +4,7 @@
 import logging
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 # 導入配置和依賴
 from config import settings
@@ -16,6 +17,19 @@ logger = get_logger("main")
 
 # 初始化 FastAPI 應用程序
 app = FastAPI(**settings.get_fastapi_settings())
+
+# 設置 CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://sundayhub.jumido.tw",
+        "http://sundayhub.jumido.tw",
+        "https://storage.googleapis.com"  # 如果通過 GCS 默認域名訪問
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],  # 只允許必要的 HTTP 方法
+    allow_headers=["*"],
+)
 
 # 設置靜態文件
 app.mount("/static", StaticFiles(directory="static"), name="static")

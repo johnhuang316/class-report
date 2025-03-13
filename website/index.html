@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主日學週報列表</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico">
+</head>
+<body>
+    <div class="container">
+        <div class="header-image">
+            <!-- Emoji as placeholder for an image -->
+            <span style="font-size: 80px;">✝️📖🙏👧👦</span>
+        </div>
+        <h1>✨ 主日學週報列表 ✨</h1>
+        <p class="intro-text">點擊下方卡片查看週報內容，記錄孩子們的信仰學習和靈命成長！</p>
+        
+        <div class="reports-list">
+            <h2><span class="cute-icon">📚</span> 所有週報</h2>
+            <div id="reports-list" class="reports-grid">
+                <div class="loading">載入週報中... 🔄</div>
+            </div>
+            <div id="more-reports" class="more-reports" style="display: none;">
+                <p>還有更多週報...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 當頁面載入完成後執行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 獲取報告列表容器
+            const reportsContainer = document.getElementById('reports-list');
+            const moreReportsElement = document.getElementById('more-reports');
+            
+            // 從 API 獲取報告列表
+            fetch('https://class-report-182610284250.us-central1.run.app/api/reports')
+                .then(response => response.json())
+                .then(data => {
+                    // 清空載入中的提示
+                    reportsContainer.innerHTML = '';
+                    
+                    // 如果沒有報告，顯示提示
+                    if (!data.reports || data.reports.length === 0) {
+                        reportsContainer.innerHTML = '<div class="no-reports">目前還沒有週報 💫</div>';
+                        return;
+                    }
+                    
+                    // 定義可愛的圖示陣列
+                    const icons = ['📖', '🌈', '✨', '🎀', '🧸', '🌟', '🎵', '🙏', '💕', '🦄', '🎈', '🌻'];
+                    
+                    // Only show first 12 reports
+                    const reportsToShow = data.reports.slice(0, 12);
+                    
+                    // Iterate over reports and create cards
+                    reportsToShow.forEach((report, index) => {
+                        // Randomly select an icon
+                        const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+                        
+                        // Create report card
+                        const card = document.createElement('div');
+                        card.className = 'report-card';
+                        card.innerHTML = `
+                            <a href="/reports/${report.name}" class="report-item" target="_blank">
+                                <div class="report-date">${report.name}</div>
+                                <div class="report-icon">${randomIcon}</div>
+                            </a>
+                        `;
+                        
+                        // Add to container
+                        reportsContainer.appendChild(card);
+                    });
+                    
+                    // If there are more than 12 reports, show "More Reports" prompt
+                    if (data.reports.length > 12) {
+                        moreReportsElement.style.display = 'block';
+                        moreReportsElement.querySelector('p').textContent = `還有 ${data.reports.length - 12} 份更早的週報...`;
+                    }
+                })
+                .catch(error => {
+                    console.error('獲取報告列表失敗:', error);
+                    reportsContainer.innerHTML = '<div class="no-reports">無法載入週報列表 😢</div>';
+                });
+        });
+    </script>
+</body>
+</html>

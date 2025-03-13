@@ -140,11 +140,24 @@ class GCSPlatform(OutputPlatformInterface):
                 original_content=original_content
             )
             
-            # 生成帶時間戳的文件名
-            timestamp = datetime.now().strftime("%H%M%S")
-            filename = f"{title}_{timestamp}"
+            # Clean the title for use in filename
+            # Remove HTML tags and special characters
             
-            # 上傳到 GCS
+            # Extract the raw title (without HTML and emojis)
+            # First remove any HTML tags
+            clean_title = re.sub(r'<.*?>', '', title)
+            # Then remove emojis and special characters, keeping only Chinese characters, alphanumeric, hyphens and dots
+            clean_title = re.sub(r'[^\u4e00-\u9fff\u3400-\u4dbf\w\-\.]', '', clean_title)
+            # Limit length to avoid excessively long filenames
+            clean_title = clean_title[:50]
+            
+            # Generate timestamp for uniqueness
+            timestamp = datetime.now().strftime("%H%M%S")
+            
+            # Generate filename with title-date_time_timestamp format
+            filename = f"{clean_title}-{report_date}_{timestamp}"
+            
+            # Upload to GCS
             page_url = self.storage_service.upload_html(html_content, filename)
             
             if not page_url:

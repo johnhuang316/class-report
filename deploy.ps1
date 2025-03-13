@@ -84,3 +84,7 @@ gcloud run deploy $SERVICE_NAME `
     --min-instances 0
 
 Write-Host "Deployment complete! Your service will be available at the URL shown above."
+
+# Upload website files to GCS bucket root
+Write-Host "Uploading website files to GCS bucket root..."
+& "$PSScriptRoot\scripts\upload_website.ps1"
