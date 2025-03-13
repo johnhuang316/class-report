@@ -1,9 +1,14 @@
 # PowerShell Deployment script for Google Cloud Run
 
+# Get script directory and project root
+$scriptPath = $PSScriptRoot
+$projectRoot = Split-Path -Parent $scriptPath
+
 # Load environment variables from .env file
-function Load-EnvFile {
-    if (Test-Path .env) {
-        Get-Content .env | ForEach-Object {
+function Import-EnvFile {
+    $envPath = Join-Path $projectRoot ".env"
+    if (Test-Path $envPath) {
+        Get-Content $envPath | ForEach-Object {
             if ($_ -match '^([^=]+)=(.*)$') {
                 $key = $matches[1]
                 $value = $matches[2]
@@ -18,7 +23,7 @@ function Load-EnvFile {
 }
 
 # Load environment variables
-Load-EnvFile
+Import-EnvFile
 
 # Configuration - load from environment variables without defaults
 $PROJECT_ID = $env:GCP_PROJECT_ID
@@ -87,4 +92,4 @@ Write-Host "Deployment complete! Your service will be available at the URL shown
 
 # Upload website files to GCS bucket root
 Write-Host "Uploading website files to GCS bucket root..."
-& "$PSScriptRoot\scripts\upload_website.ps1"
+& "$PSScriptRoot\upload_website.ps1"

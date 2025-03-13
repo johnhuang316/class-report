@@ -1,11 +1,15 @@
 #!/bin/bash
 # Deployment script for Google Cloud Run
 
+# Get script directory and project root
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Load environment variables from .env file
-if [ -f .env ]; then
+if [ -f "$PROJECT_ROOT/.env" ]; then
     echo "Loading environment variables from .env file"
     set -a
-    source .env
+    source "$PROJECT_ROOT/.env"
     set +a
 else
     echo "Error: .env file not found. Please create one based on .env.example"
@@ -74,6 +78,6 @@ echo "Deployment complete! Your service will be available at the URL shown above
 
 # Upload website files to GCS bucket root
 echo "Uploading website files to GCS bucket root..."
-"$SCRIPT_DIR/scripts/upload_website.sh"
+"$SCRIPT_DIR/upload_website.sh"
 
 echo "Website files uploaded successfully to GCS bucket root"
